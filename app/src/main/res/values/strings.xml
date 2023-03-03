@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">authenticator</string>
+    <string name="title_activity_add_account_screen">AddAccountScreen</string>
+</resources>
