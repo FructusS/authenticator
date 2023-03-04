@@ -14,7 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.itplaneta.ui.theme.ItplanetaTheme
-import com.example.itplaneta.screens.MainScreen
+import com.example.itplaneta.ui.screens.MainScreen
 import com.example.itplaneta.ui.screens.AccountScreen
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
 import com.example.itplaneta.ui.viewmodels.MainViewModel
