@@ -1,5 +1,6 @@
-package com.example.itplaneta.screens
+package com.example.itplaneta.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -10,24 +11,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.itplaneta.ui.viewmodels.MainViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpType
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
     Scaffold(
         floatingActionButton = {
         FloatingActionButton(onClick = {onNavigateToAccount()}) {
@@ -48,6 +55,13 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
                 var visible = true
                 val code = viewModel.codes[account.id]
                 Account(
+                    deleteClick = {
+                        viewModel.deleteAccount(account = account)
+                    },
+                    copyClick = {
+                        clipboardManager.setText(AnnotatedString(code.toString()))
+                        Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
+                    },
                     issuer = if (account.issuer != "") { ->
                         Text(account.issuer, maxLines = 1,fontSize = 25.sp)
                     } else null,
@@ -103,7 +117,14 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
                                 }
                             }
                         }
-                    }
+                    },
+                    modifier = Modifier.animateItemPlacement(
+                        animationSpec = tween(
+                            durationMillis = 700,
+                            easing = LinearOutSlowInEasing,
+                            delayMillis = 500
+                        )
+                    )
                 )
             }
         }
@@ -113,12 +134,14 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
 
 @Composable
 private fun Account(
-
+    deleteClick : () -> Unit,
+    copyClick : () -> Unit,
     modifier: Modifier = Modifier,
     issuer: (@Composable () -> Unit)?,
     label: @Composable () -> Unit,
     indicator: @Composable () -> Unit,
     code: @Composable () -> Unit,
+
 ) {
     val localDensity = LocalDensity.current
     val shape by animateValueAsState(
@@ -189,10 +212,17 @@ private fun Account(
                         ProvideTextStyle(MaterialTheme.typography.titleLarge) {
                             code()
                         }
-
+                        Spacer(Modifier.weight(1f))
+                        IconButton(onClick = deleteClick) {
+                            Icon(Icons.Default.Delete, contentDescription = "delete")
+                        }
+                        IconButton(onClick = copyClick) {
+                            Icon(painterResource(id = R.drawable.baseline_content_copy_24), contentDescription = "copy")
+                        }
                     }
                 }
             }
+
         }
     }
 }
