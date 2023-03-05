@@ -14,7 +14,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -27,20 +29,19 @@ import com.example.itplaneta.ui.viewmodels.AccountViewModel
 @Composable
 fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController) {
 
-    var label by rememberSaveable { mutableStateOf("") }
-    var secret by rememberSaveable { mutableStateOf("") }
-    var issuer by rememberSaveable { mutableStateOf("") }
-    var selected by rememberSaveable { mutableStateOf("") }
+        var label by rememberSaveable { mutableStateOf("") }
+        var secret by rememberSaveable { mutableStateOf("") }
+        var issuer by rememberSaveable { mutableStateOf("") }
+        var selected by rememberSaveable { mutableStateOf("") }
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
         topBar = {
-            TopAppBar() {
+            TopAppBar(backgroundColor = colorResource(id = R.color.bg_toolbar)) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.Close, contentDescription = "Назад")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.back))
                 }
-
                 Spacer(Modifier.weight(1f, true))
 
                 TextButton(
@@ -58,16 +59,15 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
                                     period = 30
                                 )
                             )
-                            navController.popBackStack(route = "main", inclusive = false, saveState = false)
+                            navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)) {
 
-                    Text(text = "сохранить", color = Color.White)
+                    Text(text = stringResource(id = R.string.save))
                 }
             }
         }
     ) {
-
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp, 5.dp)) {
@@ -95,7 +95,9 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
                 },
                 label = { Text("Код") }
             )
+
             val otpList =  stringArrayResource(R.array.test)
+
             otpList.forEach { item ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
