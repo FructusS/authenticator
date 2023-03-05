@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -29,7 +30,8 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+
+                    color = colorResource(id = R.color.bg_main)
                 ) {
 
                     MyAppNavHost()
@@ -50,12 +52,15 @@ class MainActivity : ComponentActivity() {
         ) {
             composable(route = "main") {
                 val viewModel = hiltViewModel<MainViewModel>()
-                MainScreen(viewModel
-                ) { navController.navigate("account") }
+                MainScreen(viewModel,navController)
             }
             composable(route ="account") {
                 val viewModel = hiltViewModel<AccountViewModel>()
                 AccountScreen(viewModel,navController)
+            }
+            composable(route ="qrscanner") {
+                //val viewModel = hiltViewModel<AccountViewModel>()
+               // AccountScreen(viewModel,navController)
             }
         }
     }
