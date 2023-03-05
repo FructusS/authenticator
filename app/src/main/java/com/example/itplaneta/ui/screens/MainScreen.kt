@@ -3,8 +3,7 @@ package com.example.itplaneta.ui.screens
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,32 +16,82 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.itplaneta.ui.viewmodels.MainViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpType
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
+fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     Scaffold(
+        backgroundColor = colorResource(id = R.color.bg_main),
         floatingActionButton = {
-        FloatingActionButton(onClick = {onNavigateToAccount()}) {
-            Image(painter = painterResource(id = R.drawable.baseline_add_24), contentDescription = "add")
-        }
-    },
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
-    ) { paddingValues ->
+                var expanded by remember { mutableStateOf(false) }
+                val iconAddRotation by animateFloatAsState(if (expanded) 45f else 0f)
+
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom),
+                    exit = slideOutVertically(targetOffsetY = { fullWidth -> fullWidth })
+                            + shrinkVertically(),
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        FloatingActionButton(
+                            onClick = { navController.navigate("qrscanner") },
+                            backgroundColor = colorResource(id = R.color.bg_account)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_qr_code_scanner),
+                                contentDescription = "qr scanner"
+                            )
+                        }
+                        FloatingActionButton(
+                            onClick = { navController.navigate("account") },
+                            backgroundColor = colorResource(id = R.color.bg_account)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_keyboard),
+                                contentDescription = "keyboard")
+                        }
+                    }
+                }
+
+                FloatingActionButton(
+                    onClick = { expanded = !expanded },
+                    backgroundColor = colorResource(id = R.color.bg_account)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "add",
+                        modifier = Modifier.rotate(iconAddRotation)
+                    )
+                }
+            }
+        },
+
+        ) { paddingValues ->
         val list = viewModel.accounts.collectAsState(initial = emptyList())
         LazyColumn(
             modifier = Modifier
@@ -50,8 +99,8 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
                 .padding(paddingValues),
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-        ){
-            items(list.value){account ->
+        ) {
+            items(list.value) { account ->
                 var visible = true
                 val code = viewModel.codes[account.id]
                 Account(
@@ -60,15 +109,15 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
                     },
                     copyClick = {
                         clipboardManager.setText(AnnotatedString(code.toString()))
-                        Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Скопировано", Toast.LENGTH_SHORT).show()
                     },
                     issuer = if (account.issuer != "") { ->
-                        Text(account.issuer, maxLines = 1,fontSize = 25.sp)
+                        Text(account.issuer, maxLines = 1, fontSize = 25.sp)
                     } else null,
                     label = { Text(account.label, maxLines = 1, fontSize = 25.sp) },
 
                     indicator = {
-                        if (OtpType.Totp == account.tokenType){
+                        if (OtpType.Totp == account.tokenType) {
                             Box(
                                 modifier = Modifier.size(48.dp),
                                 contentAlignment = Alignment.Center
@@ -87,15 +136,14 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
                                 }
                             }
                         }
-                        if (OtpType.Hotp == account.tokenType){
-                                FilledIconButton(onClick = {
-
-                                }) {
-                                    Text(account.counter.toString())
-                                }
+                        if (OtpType.Hotp == account.tokenType) {
+                            FilledIconButton(onClick = {
+                            }) {
+                                Text(account.counter.toString())
+                            }
                         }
                     },
-                    code =  {
+                    code = {
                         AnimatedContent(
                             targetState = code,
                             transitionSpec = {
@@ -134,15 +182,15 @@ fun MainScreen(viewModel: MainViewModel, onNavigateToAccount: () -> Unit) {
 
 @Composable
 private fun Account(
-    deleteClick : () -> Unit,
-    copyClick : () -> Unit,
+    deleteClick: () -> Unit,
+    copyClick: () -> Unit,
     modifier: Modifier = Modifier,
     issuer: (@Composable () -> Unit)?,
     label: @Composable () -> Unit,
     indicator: @Composable () -> Unit,
     code: @Composable () -> Unit,
 
-) {
+    ) {
     val localDensity = LocalDensity.current
     val shape by animateValueAsState(
         targetValue = MaterialTheme.shapes.large,
@@ -183,7 +231,10 @@ private fun Account(
                     shape = MaterialTheme.shapes.large
                 ) {
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     if (issuer != null) {
                         val color = LocalContentColor.current.copy(alpha = 0.7f)
                         CompositionLocalProvider(LocalContentColor provides color) {
@@ -217,12 +268,14 @@ private fun Account(
                             Icon(Icons.Default.Delete, contentDescription = "delete")
                         }
                         IconButton(onClick = copyClick) {
-                            Icon(painterResource(id = R.drawable.baseline_content_copy_24), contentDescription = "copy")
+                            Icon(
+                                painterResource(id = R.drawable.ic_content_copy),
+                                contentDescription = "copy"
+                            )
                         }
                     }
                 }
             }
-
         }
     }
 }
