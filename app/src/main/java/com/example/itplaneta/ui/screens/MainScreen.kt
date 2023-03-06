@@ -18,9 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +32,13 @@ import com.example.itplaneta.ui.viewmodels.MainViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpType
 
+
+
+enum class MultiFloatingState{
+    Expanded,
+    Collapsed
+}
+
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
@@ -43,49 +47,15 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
     Scaffold(
         backgroundColor = colorResource(id = R.color.bg_main),
         floatingActionButton = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-
-                var expanded by remember { mutableStateOf(false) }
-                val iconAddRotation by animateFloatAsState(if (expanded) 45f else 0f)
-
-                AnimatedVisibility(
-                    visible = expanded,
-                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom),
-                    exit = slideOutVertically(targetOffsetY = { fullWidth -> fullWidth })
-                            + shrinkVertically(),
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        FloatingActionButton(
-                            onClick = { navController.navigate("qrscanner") },
-                            backgroundColor = colorResource(id = R.color.bg_account)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_qr_code_scanner),
-                                contentDescription = "qr scanner"
-                            )
-                        }
-                        FloatingActionButton(
-                            onClick = { navController.navigate("account") },
-                            backgroundColor = colorResource(id = R.color.bg_account)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_keyboard),
-                                contentDescription = "keyboard")
-                        }
-                    }
-                }
+            Column() {
 
                 FloatingActionButton(
-                    onClick = { expanded = !expanded },
+                    onClick = { navController.navigate("account")},
                     backgroundColor = colorResource(id = R.color.bg_account)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "add",
-                        modifier = Modifier.rotate(iconAddRotation)
+                        contentDescription = "add"
                     )
                 }
             }
@@ -97,6 +67,7 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
+
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -168,11 +139,14 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
                     },
                     modifier = Modifier.animateItemPlacement(
                         animationSpec = tween(
-                            durationMillis = 700,
+                            durationMillis = 1500,
                             easing = LinearOutSlowInEasing,
-                            delayMillis = 500
+                            delayMillis = 1500
                         )
-                    )
+                    ),
+                    editClick = {
+                        navController.navigate("account")
+                    }
                 )
             }
         }
@@ -184,6 +158,7 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
 private fun Account(
     deleteClick: () -> Unit,
     copyClick: () -> Unit,
+    editClick: () -> Unit,
     modifier: Modifier = Modifier,
     issuer: (@Composable () -> Unit)?,
     label: @Composable () -> Unit,
@@ -232,6 +207,7 @@ private fun Account(
                 ) {
                 }
                 Row(
+                    modifier = Modifier.wrapContentWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -246,8 +222,18 @@ private fun Account(
                     ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
                         label()
                     }
+
+                }
+                Spacer(Modifier.weight(1f))
+
+                IconButton(onClick = editClick) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_edit),
+                        contentDescription = "edit"
+                    )
                 }
             }
+
             AnimatedVisibility(
                 visible = true,
             ) {
