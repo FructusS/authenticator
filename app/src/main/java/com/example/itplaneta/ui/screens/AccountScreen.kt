@@ -2,6 +2,7 @@ package com.example.itplaneta.ui.screens
 
 import android.annotation.SuppressLint
 import android.widget.RadioGroup
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
@@ -15,8 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -24,17 +28,26 @@ import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpDigest
 import com.example.itplaneta.otp.OtpType
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
-
+import com.example.itplaneta.data.database.Account
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController) {
-
-        var label by rememberSaveable { mutableStateOf("") }
-        var secret by rememberSaveable { mutableStateOf("") }
-        var issuer by rememberSaveable { mutableStateOf("") }
-        var selected by rememberSaveable { mutableStateOf("") }
-
     Scaffold(
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text(text = stringResource(id = R.string.save)) },
+                backgroundColor = colorResource(id = R.color.bg_account),
+                onClick = {
+                    if (viewModel.addAccount()){
+                        navController.popBackStack()
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_save),
+                        contentDescription = "")
+                })
+        },
         modifier = Modifier
             .fillMaxSize(),
         topBar = {
@@ -44,77 +57,87 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
                 }
                 Spacer(Modifier.weight(1f, true))
 
-                TextButton(
-                    onClick = {
-                            viewModel.addAccount(
-                                com.example.itplaneta.data.database.Account(
-                                    0,
-                                    label = label,
-                                    issuer = issuer,
-                                    tokenType = OtpType.Totp,
-                                    algorithm = OtpDigest.Sha1,
-                                    secret = secret,
-                                    digits = 6,
-                                    counter = 0,
-                                    period = 30
-                                )
-                            )
-                            navController.popBackStack()
-                    },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)) {
-
-                    Text(text = stringResource(id = R.string.save))
+                IconButton(onClick = {}) {
+                    Icon(painter = painterResource(id = R.drawable.ic_qr_code_scanner), contentDescription = "")
                 }
             }
         }
     ) {
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp, 5.dp)) {
+            .padding(5.dp, 5.dp),
+        verticalArrangement = Arrangement.Center) {
+            var shownSecret by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = issuer,
+                value = viewModel.issuer,
                 onValueChange = {
-                    issuer = it
+                    viewModel.updateIssuer(it)
                 },
-                label = { Text("Платформа аккаунта") }
+
+                maxLines = 1,
+                singleLine = true,
+                leadingIcon = {Icon(painterResource(id = R.drawable.ic_issuer), contentDescription = "Платформа")},
+
+                label = { Text("Платформа аккаунта", color = Color.Black) },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = colorResource(id = R.color.bg_toolbar),)
             )
+
             OutlinedTextField(
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                value = label,
+                value = viewModel.label,
                 onValueChange = {
-                    label = it
+                    viewModel.updateLabel(it)
                 },
-                label = { Text("Название аккаунта") }
+                maxLines = 1,
+                isError = viewModel.errorLabel,
+                leadingIcon = {Icon(painterResource(id = R.drawable.ic_label), contentDescription = "аккаунт")},
+                label = { Text("Название аккаунта", color = Color.Black) },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = colorResource(id = R.color.bg_toolbar),)
             )
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = secret,
-                onValueChange = {
-                    secret = it
-                },
-                label = { Text("Код") }
-            )
-
-            val otpList =  stringArrayResource(R.array.test)
-
-            otpList.forEach { item ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        selected = selected == item,
-                        onClick = {
-
-                        },
-                        enabled = true,
-                        colors = RadioButtonDefaults.colors(
-                            selectedColor = Color.Magenta
-                        )
-                    )
-                    Text(text = item, modifier = Modifier.padding(start = 8.dp))
-                }
+            if (viewModel.errorLabel) {
+                Text(
+                    text = viewModel.errorLabelText,
+                    color = MaterialTheme.colors.error,
+                    style = MaterialTheme.typography.caption,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
             }
 
-
+            OutlinedTextField(
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.secret,
+                maxLines = 1,
+                trailingIcon = {
+                    IconButton(onClick = { shownSecret = !shownSecret }) {
+                        Icon(
+                            painter = if (shownSecret) painterResource(id = R.drawable.ic_visibility) else painterResource(id = R.drawable.ic_visibility_off),
+                            contentDescription = null
+                        )
+                    }
+                },
+                visualTransformation = if (shownSecret) VisualTransformation.None else PasswordVisualTransformation(),
+                onValueChange = {
+                    viewModel.updateSecret(it)
+                },
+                isError = viewModel.errorSecret,
+                leadingIcon = {Icon(painterResource(id = R.drawable.ic_secret), contentDescription = "Плаформа")},
+                label = { Text("Код", color = Color.Black) },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = colorResource(id = R.color.bg_toolbar),)
+            )
+            if (viewModel.errorSecret) {
+                Text(
+                    text = viewModel.errorSecretText,
+                    color = MaterialTheme.colors.error,
+                    style = MaterialTheme.typography.caption,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
         }
     }
 }
