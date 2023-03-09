@@ -3,6 +3,10 @@
     <string name="title_activity_add_account_screen">AddAccountScreen</string>
     <string name="save">Cохранить</string>
     <string name="back">Назад</string>
+    <string name="cancel">Отмена</string>
+    <string name="accept">Принять</string>
+    <string name="camera_permissions_not_granted">Для сканирования QR-кода нужно разрешение на использование камеры. Предоставить доступ?</string>
+    <string name="camera_permissions_required">Для этого приложения требуется разрешение на использовании камеры для сканирования QR-кода.</string>
     <string-array name="test">
         <item>Totp</item>
         <item>Hotp</item>

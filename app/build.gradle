@@ -60,6 +60,8 @@ dependencies {
     //Hilt
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
     implementation("com.google.dagger:hilt-android:2.44")
+    implementation 'com.google.mlkit:vision-common:17.1.0'
+    implementation 'com.google.android.gms:play-services-mlkit-barcode-scanning:18.0.0'
     kapt("com.google.dagger:hilt-android-compiler:2.44")
 
     //room
@@ -77,6 +79,8 @@ dependencies {
     // Zxing
     implementation 'com.google.zxing:core:3.3.3'
 
+    //permissions
+    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
 
 
     implementation 'androidx.core:core-ktx:1.7.0'

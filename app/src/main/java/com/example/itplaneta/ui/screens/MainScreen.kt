@@ -83,7 +83,7 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
                         Toast.makeText(context, "Скопировано", Toast.LENGTH_SHORT).show()
                     },
                     issuer = if (account.issuer != "") { ->
-                        Text(account.issuer, maxLines = 1, fontSize = 25.sp)
+                        Text(account.issuer.toString(), maxLines = 1, fontSize = 25.sp)
                     } else null,
                     label = { Text(account.label, maxLines = 1, fontSize = 25.sp) },
 

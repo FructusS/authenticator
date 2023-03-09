@@ -10,4 +10,5 @@
     <color name="bg_account">#F6F1F8</color>
     <color name="bg_main">#E0D3E4</color>
     <color name="bg_toolbar">#D2C4D6</color>
+    <color name="border">#605E5E</color>
 </resources>

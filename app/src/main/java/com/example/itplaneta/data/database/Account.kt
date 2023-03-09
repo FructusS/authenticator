@@ -1,5 +1,6 @@
 package com.example.itplaneta.data.database
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -13,7 +14,7 @@ data class Account (
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     @ColumnInfo(name = "issuer")
-    val issuer: String,
+    val issuer: String?,
     @ColumnInfo(name = "label")
     val label: String,
     @ColumnInfo(name = "tokenType")

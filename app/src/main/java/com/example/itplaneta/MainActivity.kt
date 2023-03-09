@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,8 +16,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.itplaneta.ui.theme.ItplanetaTheme
 import com.example.itplaneta.ui.screens.MainScreen
 import com.example.itplaneta.ui.screens.AccountScreen
+import com.example.itplaneta.ui.screens.ScannerScreen
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
 import com.example.itplaneta.ui.viewmodels.MainViewModel
+import com.example.itplaneta.ui.viewmodels.QrScannerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -30,10 +31,8 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-
                     color = colorResource(id = R.color.bg_main)
                 ) {
-
                     MyAppNavHost()
                 }
             }
@@ -59,8 +58,9 @@ class MainActivity : ComponentActivity() {
                 AccountScreen(viewModel,navController)
             }
             composable(route ="qrscanner") {
-                //val viewModel = hiltViewModel<AccountViewModel>()
-               // AccountScreen(viewModel,navController)
+                val viewModel = hiltViewModel<QrScannerViewModel>()
+
+                ScannerScreen(viewModel,navController)
             }
         }
     }

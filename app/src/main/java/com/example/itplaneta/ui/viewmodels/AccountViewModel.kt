@@ -46,7 +46,6 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
 
 
     fun addAccount() : Boolean{
-
         resetErrors()
 
         if (label.isEmpty()){
@@ -79,6 +78,8 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
         errorLabel = false
         errorSecret = false
     }
+
+
 
     fun updateAccount(account: Account){
         accountRepository.updateAccount(account)

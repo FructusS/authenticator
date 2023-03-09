@@ -18,9 +18,6 @@ class OtpGenerator @Inject constructor() {
         digits: Int,
         digest: OtpDigest
     ): String {
-        if (secret.isEmpty()){
-            return ""
-        }
         val hash = Mac.getInstance(digest.algorithmName).let { mac ->
             val byteCounter = ByteBuffer.allocate(8)
                 .putLong(counter)

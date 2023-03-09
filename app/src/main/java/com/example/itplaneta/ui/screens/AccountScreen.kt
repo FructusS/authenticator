@@ -2,6 +2,7 @@ package com.example.itplaneta.ui.screens
 
 import android.annotation.SuppressLint
 import android.widget.RadioGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,44 +30,56 @@ import com.example.itplaneta.otp.OtpDigest
 import com.example.itplaneta.otp.OtpType
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
 import com.example.itplaneta.data.database.Account
+
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController) {
     Scaffold(
+        backgroundColor = colorResource(id = R.color.bg_main),
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 text = { Text(text = stringResource(id = R.string.save)) },
                 backgroundColor = colorResource(id = R.color.bg_account),
                 onClick = {
-                    if (viewModel.addAccount()){
+                    if (viewModel.addAccount()) {
                         navController.popBackStack()
                     }
                 },
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_save),
-                        contentDescription = "")
+                        contentDescription = ""
+                    )
                 })
         },
+
         modifier = Modifier
             .fillMaxSize(),
         topBar = {
             TopAppBar(backgroundColor = colorResource(id = R.color.bg_toolbar)) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.back))
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(id = R.string.back)
+                    )
                 }
                 Spacer(Modifier.weight(1f, true))
 
-                IconButton(onClick = {}) {
-                    Icon(painter = painterResource(id = R.drawable.ic_qr_code_scanner), contentDescription = "")
+                IconButton(onClick = { navController.navigate("qrscanner") }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_qr_code_scanner),
+                        contentDescription = ""
+                    )
                 }
             }
         }
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp, 5.dp),
-        verticalArrangement = Arrangement.Center) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp, 5.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
             var shownSecret by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -77,11 +90,19 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
 
                 maxLines = 1,
                 singleLine = true,
-                leadingIcon = {Icon(painterResource(id = R.drawable.ic_issuer), contentDescription = "Платформа")},
+                leadingIcon = {
+                    Icon(
+                        painterResource(id = R.drawable.ic_issuer),
+                        contentDescription = "Платформа",
+                        tint = Color.Black
+                    )
+                },
 
                 label = { Text("Платформа аккаунта", color = Color.Black) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = colorResource(id = R.color.bg_toolbar),)
+                    focusedBorderColor = Color.Black,
+                    unfocusedBorderColor = Color.Black
+                )
             )
 
             OutlinedTextField(
@@ -93,10 +114,18 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
                 },
                 maxLines = 1,
                 isError = viewModel.errorLabel,
-                leadingIcon = {Icon(painterResource(id = R.drawable.ic_label), contentDescription = "аккаунт")},
+                leadingIcon = {
+                    Icon(
+                        painterResource(id = R.drawable.ic_label),
+                        contentDescription = "аккаунт",
+                        tint = Color.Black
+                    )
+                },
                 label = { Text("Название аккаунта", color = Color.Black) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = colorResource(id = R.color.bg_toolbar),)
+                    focusedBorderColor = colorResource(id = R.color.border),
+                    unfocusedBorderColor = colorResource(id = R.color.border),
+                )
             )
             if (viewModel.errorLabel) {
                 Text(
@@ -108,6 +137,7 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
             }
 
             OutlinedTextField(
+
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.secret,
@@ -115,7 +145,10 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
                 trailingIcon = {
                     IconButton(onClick = { shownSecret = !shownSecret }) {
                         Icon(
-                            painter = if (shownSecret) painterResource(id = R.drawable.ic_visibility) else painterResource(id = R.drawable.ic_visibility_off),
+                            painter = if (shownSecret) painterResource(id = R.drawable.ic_visibility) else painterResource(
+                                id = R.drawable.ic_visibility_off
+                            ),
+                            tint = Color.Black,
                             contentDescription = null
                         )
                     }
@@ -125,10 +158,18 @@ fun AccountScreen(viewModel: AccountViewModel, navController: NavHostController)
                     viewModel.updateSecret(it)
                 },
                 isError = viewModel.errorSecret,
-                leadingIcon = {Icon(painterResource(id = R.drawable.ic_secret), contentDescription = "Плаформа")},
+                leadingIcon = {
+                    Icon(
+                        painterResource(id = R.drawable.ic_secret),
+                        contentDescription = "Плаформа",
+                        tint = Color.Black
+                    )
+                },
                 label = { Text("Код", color = Color.Black) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = colorResource(id = R.color.bg_toolbar),)
+                    focusedBorderColor = colorResource(id = R.color.border),
+                    unfocusedBorderColor = colorResource(id = R.color.border),
+                )
             )
             if (viewModel.errorSecret) {
                 Text(

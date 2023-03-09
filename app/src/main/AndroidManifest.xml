@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <application
         android:name=".App"
         android:allowBackup="true"
@@ -12,11 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Itplaneta"
         tools:targetApi="31">
-        <activity
-            android:name=".screens.AddAccountScreen"
-            android:exported="false"
-            android:label="@string/title_activity_add_account_screen"
-            android:theme="@style/Theme.Itplaneta" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -28,6 +26,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode" />
+
     </application>
 
 </manifest>
