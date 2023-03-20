@@ -1,6 +1,8 @@
 package com.example.itplaneta.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.util.Log
 import android.util.Size
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
@@ -12,10 +14,15 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import com.example.itplaneta.R
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -29,24 +36,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 
-
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostController) {
-
-    var qrCodeResult by remember {
-        mutableStateOf("")
-    }
-    val context = LocalContext.current
-
-    val cameraProviderFuture = remember {
-        ProcessCameraProvider.getInstance(context)
-    }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
     val cameraPermission = rememberPermissionState(
         permission = Manifest.permission.CAMERA
     )
+    val context = LocalContext.current
 
 
     Column() {
@@ -55,7 +52,7 @@ fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostControlle
             is PermissionStatus.Denied -> {
                 AlertDialog(
 
-                    onDismissRequest = { /*TODO*/ },
+                    onDismissRequest = {},
                     text = {
                         if (status.shouldShowRationale) {
                             Text(stringResource(R.string.camera_permissions_required))
@@ -77,54 +74,38 @@ fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostControlle
                             {
                                 Text(stringResource(R.string.accept))
                             }
-
-
-
                         }
                     }
 
                 )
             }
             is PermissionStatus.Granted -> {
-                AndroidView(
-                    factory = { context ->
-                        val previewView = PreviewView(context)
-                        val preview = Preview.Builder().build()
-                        val selector = CameraSelector.Builder()
-                            .requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
-                        preview.setSurfaceProvider(previewView.surfaceProvider)
-                        val imageAnalysis = ImageAnalysis.Builder()
-                            .setTargetResolution(
-                                Size(
-                                    previewView.width, previewView.height
-                                )
-                            )
-                            .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                            .build()
-                        imageAnalysis.setAnalyzer(
-                            ContextCompat.getMainExecutor(context),
-                            QrCodeAnalyzer { result ->
-                                qrCodeResult = result
-                                viewModel.parse(result)
-                                navController.popBackStack()
-                            }
+                Scaffold() {
+                    CameraPreview(
+                        state = rememberCameraState(
+                            context = context,
+                            analysis = ImageAnalysis.Builder()
+                                .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
+                                .build()
+                                .also { analysis ->
+                                    analysis.setAnalyzer(
+                                        ContextCompat.getMainExecutor(context),
+                                        QrCodeAnalyzer(
+                                            onSuccess = {
+                                                viewModel.parse(it.text)
+                                                navController.navigate("main")
+                                            },
+                                            onFail = {
+
+                                            }
+                                        )
+                                    )
+                                }
                         )
-                        try {
-                            cameraProviderFuture.get().bindToLifecycle(
-                                lifecycleOwner,
-                                selector,
-                                preview,
-                                imageAnalysis
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                        previewView
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
+                    )
+                }
+
             }
         }
-        Toast.makeText(context,"QR code: $qrCodeResult",Toast.LENGTH_SHORT).show()
     }
 }

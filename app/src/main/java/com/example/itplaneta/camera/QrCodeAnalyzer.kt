@@ -12,56 +12,32 @@ import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import java.nio.ByteBuffer
 
-class QrCodeAnalyzer(private val onQrCodeScanned : (String) -> Unit): ImageAnalysis.Analyzer {
-    private val imageFormats = listOf(
-        ImageFormat.YUV_420_888,
-        ImageFormat.YUV_422_888,
-        ImageFormat.YUV_444_888,
-    )
+
+class QrCodeAnalyzer(
+    private inline val onSuccess: (com.google.zxing.Result) -> Unit,
+    private inline val onFail: (NotFoundException) -> Unit
+) : ImageAnalysis.Analyzer {
+
     override fun analyze(image: ImageProxy) {
-        if (image.format in imageFormats){
-            val bytes = image.planes.first().buffer.toByteArray()
+        image.use { imageProxy ->
+            val data = imageProxy.planes[0].buffer.toByteArray()
 
-            val source = PlanarYUVLuminanceSource(
-                bytes,
-                image.width,
-                image.height,
-            0,
-            0,
-                image.width,
-                image.height,
-                false
+            ZxingDecoder.decodeYuvLuminanceSource(
+                data = data,
+                dataWidth = imageProxy.width,
+                dataHeight = imageProxy.height,
+                onSuccess = onSuccess,
+                onError = onFail
             )
-            val bitmap = BinaryBitmap(HybridBinarizer(source))
-
-
-            try {
-                val result = MultiFormatReader().apply {
-                    setHints(
-                        mapOf(
-                            DecodeHintType.POSSIBLE_FORMATS to arrayListOf(
-                                BarcodeFormat.QR_CODE,
-                                BarcodeFormat.AZTEC
-                            )
-                        )
-                    )
-                }.decode(bitmap)
-                onQrCodeScanned(result.text)
-            } catch (e: NotFoundException) {
-                e.printStackTrace()
-            } finally {
-                image.close()
-            }
-
         }
-
-
     }
 
-    private fun ByteBuffer.toByteArray() : ByteArray{
+    private fun ByteBuffer.toByteArray(): ByteArray {
         rewind()
-        return ByteArray(remaining()).also {
-            get(it)
-        }
+        val bytes = ByteArray(remaining())
+        get(bytes)
+        return bytes
     }
+
+
 }
