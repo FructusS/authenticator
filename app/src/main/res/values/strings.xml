@@ -7,6 +7,12 @@
     <string name="accept">Принять</string>
     <string name="camera_permissions_not_granted">Для сканирования QR-кода нужно разрешение на использование камеры. Предоставить доступ?</string>
     <string name="camera_permissions_required">Для этого приложения требуется разрешение на использовании камеры для сканирования QR-кода.</string>
+    <string name="issuer">Платформа</string>
+    <string name="issuer_account">Платформа аккаунта</string>
+    <string name="account">аккаунт</string>
+    <string name="label_account">Название аккаунта</string>
+    <string name="secret">Ключ</string>
+    <string name="code">Код</string>
     <string-array name="test">
         <item>Totp</item>
         <item>Hotp</item>
