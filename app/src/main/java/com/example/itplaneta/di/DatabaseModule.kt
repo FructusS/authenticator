@@ -30,6 +30,7 @@ class DatabaseModule {
             AccountRoomDatabase::class. java ,
             "AccountDatabase"
         )
+            .addMigrations(MIGRATION_2_3)
             .fallbackToDestructiveMigration()
             .allowMainThreadQueries()
             .build()
@@ -38,6 +39,6 @@ class DatabaseModule {
 
 val MIGRATION_2_3: Migration = object : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("drop table accountEntities RENAME TO accounts")
+        database.execSQL("delete from accounts")
     }
 }
