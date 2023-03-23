@@ -1,5 +1,6 @@
 package com.example.itplaneta.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -16,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -33,15 +33,13 @@ import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpType
 
 
-
-enum class MultiFloatingState{
-    Expanded,
-    Collapsed
-}
-
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
+fun MainScreen(
+    viewModel: MainViewModel,
+    navController: NavHostController,
+    onNavigateToAccount: () -> Unit
+) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     Scaffold(
@@ -50,7 +48,7 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
             Column() {
 
                 FloatingActionButton(
-                    onClick = { navController.navigate("account")},
+                    onClick =  onNavigateToAccount ,
                     backgroundColor = colorResource(id = R.color.bg_account)
                 ) {
                     Image(
@@ -144,15 +142,18 @@ fun MainScreen(viewModel: MainViewModel, navController: NavHostController) {
                             delayMillis = 1500
                         )
                     ),
-                    editClick = {
-                        navController.navigate("account")
+                    editClick =
+                    {
+                        navController.navigate("account/${account.id}")
                     }
+
                 )
             }
         }
 
     }
 }
+
 
 @Composable
 private fun Account(
