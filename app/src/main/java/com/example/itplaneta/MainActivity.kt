@@ -10,9 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.itplaneta.ui.theme.ItplanetaTheme
 import com.example.itplaneta.ui.screens.MainScreen
 import com.example.itplaneta.ui.screens.AccountScreen
@@ -51,19 +53,35 @@ class MainActivity : ComponentActivity() {
         ) {
             composable(route = "main") {
                 val viewModel = hiltViewModel<MainViewModel>()
-                MainScreen(viewModel,navController)
+                MainScreen(viewModel,
+                    navController,
+                    onNavigateToAccount = {navController.navigate("account") }
+                )
             }
             composable(route ="account") {
                 val viewModel = hiltViewModel<AccountViewModel>()
-                AccountScreen(viewModel,navController)
+                AccountScreen(
+                    viewModel,
+                    onNavigateToMain =  { navController.popBackStack() },
+                    onNavigateToScanner = {navController.navigate("qrscanner")},
+                )
+            }
+            composable(route ="account/{accountId}",
+                arguments = listOf(navArgument("accountId"){ type = NavType.IntType})
+            ) {
+                    backStackEntry ->
+                val viewModel = hiltViewModel<AccountViewModel>()
+                AccountScreen(viewModel,
+                    onNavigateToMain =  { navController.popBackStack() },
+                    onNavigateToScanner = {navController.navigate("qrscanner")},
+                    backStackEntry.arguments?.getInt("accountId")
+                )
             }
             composable(route ="qrscanner") {
                 val viewModel = hiltViewModel<QrScannerViewModel>()
-
                 ScannerScreen(viewModel,navController)
             }
         }
     }
-
 }
 
