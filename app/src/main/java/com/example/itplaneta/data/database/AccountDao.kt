@@ -26,5 +26,8 @@ interface AccountDao {
     @Query("SELECT * FROM accounts WHERE secret = :secret")
     fun getAccountBySecret(secret: String) : Account?
 
+    @Query("SELECT * FROM accounts WHERE id = :id")
+     fun getAccountById(id: Int): Account
+
 
 }

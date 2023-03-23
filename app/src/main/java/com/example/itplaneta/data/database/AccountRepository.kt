@@ -33,4 +33,7 @@ class AccountRepository @Inject constructor(private val accountDao: AccountDao) 
     fun getAccountBySecret(secret: String): Account?
           =  accountDao.getAccountBySecret(secret)
 
+    fun getAccountById(id: Int) : Account
+    =  accountDao.getAccountById(id)
+
 }
