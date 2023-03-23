@@ -81,9 +81,21 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
 
 
 
-    fun updateAccount(account: Account){
-        accountRepository.updateAccount(account)
+    fun updateAccount(id: Int){
+        accountRepository.updateAccount(Account(
+            id.toLong(),
+            label = label,
+            issuer = issuer,
+            tokenType = OtpType.Totp,
+            algorithm = OtpDigest.Sha1,
+            secret = secret,
+            digits = 6,
+            counter = 0,
+            period = 30))
     }
     fun getAccountBySecret(secret : String) : Account? =
         accountRepository.getAccountBySecret(secret)
+
+    fun getAccountById(id : Int) : Account =
+        accountRepository.getAccountById(id)
 }
