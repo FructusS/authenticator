@@ -1,13 +1,14 @@
 package com.example.itplaneta.ui.screens
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -16,43 +17,43 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.itplaneta.R
+import com.example.itplaneta.otp.OtpType
+import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AccountScreen(
-    viewModel: AccountViewModel,
-    onNavigateToMain: () -> Unit,
-    onNavigateToScanner: () -> Unit,
-    accountId : Int? = null
-) {
+    navController: NavController,
+    accountId : Int? = null,
+    viewModel : AccountViewModel = hiltViewModel()
+    ) {
 
     LaunchedEffect(key1 = null){
         if (accountId != null){
-            val account = viewModel.getAccountById(accountId)
-            viewModel.updateIssuer(account.issuer.toString())
-            viewModel.updateLabel(account.label)
-            viewModel.updateSecret(account.secret)
+            viewModel.updateAccountField(accountId)
         }
     }
     
     Scaffold(
-        backgroundColor = colorResource(id = R.color.bg_main),
+
         floatingActionButton = {
             ExtendedFloatingActionButton(
+                backgroundColor = colorResource(id = R.color.bg_floatingbutton),
                 text = { Text(text = stringResource(id = R.string.save)) },
-                backgroundColor = colorResource(id = R.color.bg_account),
                 onClick = {
                     if (accountId == null){
                         if (viewModel.addAccount()) {
-                            onNavigateToMain()
+                            navController.navigate(Screens.Main.route)
                         }
                     }
 
                     else{
                         viewModel.updateAccount(accountId)
-                        onNavigateToMain()
+                        navController.navigate(Screens.Main.route)
                     }
                 }
                                                             ,
@@ -68,7 +69,7 @@ fun AccountScreen(
             .fillMaxSize(),
         topBar = {
             TopAppBar(backgroundColor = colorResource(id = R.color.bg_toolbar)) {
-                IconButton(onClick = onNavigateToMain) {
+                IconButton(onClick = { navController.navigate(Screens.Main.route) }) {
                     Icon(
                         Icons.Default.Close,
                         contentDescription = stringResource(id = R.string.back)
@@ -76,7 +77,7 @@ fun AccountScreen(
                 }
                 Spacer(Modifier.weight(1f, true))
 
-                IconButton(onClick = onNavigateToScanner) {
+                IconButton(onClick = {navController.navigate(Screens.QrScanner.route)}) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_qr_code_scanner),
                         contentDescription = "qrscanner"
@@ -86,6 +87,7 @@ fun AccountScreen(
         }
     ) {
         Column(
+
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp, 5.dp),
@@ -145,9 +147,9 @@ fun AccountScreen(
                     modifier = Modifier.padding(start = 16.dp)
                 )
             }
+
             if (accountId == null){
                 OutlinedTextField(
-
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     value = viewModel.secret,
@@ -189,10 +191,104 @@ fun AccountScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 }
+              //  LengthCodeRadioButton()
+            }
+            OtpTypeRadioButtons(viewModel)
+            if (viewModel.getCurrentOtpType() == OtpType.Hotp){
+                LengthCodeRadioButton()
+            }
+        }
+    }
+}
+
+@Composable
+fun LengthCodeRadioButton() {
+    val radioOptions = listOf(6,8,10)
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0] ) }
+    Column {
+        radioOptions.forEach { text ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .selectable(
+                        selected = (text == selectedOption),
+                        onClick = {
+                            onOptionSelected(text)
+                        }
+                    )
+                    .padding(horizontal = 16.dp)
+            ) {
+                RadioButton(
+                    selected = (text == selectedOption),
+                    onClick = { onOptionSelected(text) }
+
+                )
+                Text(text.toString(), modifier = Modifier.padding(start = 8.dp))
+
             }
 
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun OtpTypeRadioButtons(viewModel: AccountViewModel) {
 
+    var expanded by remember { mutableStateOf(false) }
+
+    Column() {
+        viewModel.otpTypeList.forEach { otpType ->
+            Row() {
+
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = {
+                        expanded = !expanded
+                    }
+                ) {
+                    TextField(
+                        readOnly = true,
+                        value = selectedOptionText,
+                        onValueChange = { },
+                        label = { Text("Categories") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                expanded = expanded
+                            )
+                        },
+                        colors = ExposedDropdownMenuDefaults.textFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = {
+                            expanded = false
+                        }
+                    ) {
+                        options.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    selectedOptionText = selectionOption
+                                    expanded = false
+                                }
+                            ) {
+                                Text(text = selectionOption)
+                            }
+                        }
+                    }
+                }
+                RadioButton(
+                    selected = (otpType == viewModel.getCurrentOtpType()),
+                    onClick = { viewModel.updateOtpType(otpType) }
+
+                )
+                Text(otpType.name.uppercase(), modifier = Modifier
+                    .padding(start = 8.dp)
+                    .align(Alignment.CenterVertically))
+
+            }
+
+        }
+    }
+}
