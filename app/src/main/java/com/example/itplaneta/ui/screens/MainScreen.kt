@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -27,29 +28,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.itplaneta.ui.viewmodels.MainViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpType
+import com.example.itplaneta.ui.navigation.Screens
 
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel,
-    navController: NavHostController,
-    onNavigateToAccount: () -> Unit
+    navController: NavController,
+    viewModel: MainViewModel = hiltViewModel()
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     Scaffold(
-        backgroundColor = colorResource(id = R.color.bg_main),
         floatingActionButton = {
             Column() {
 
                 FloatingActionButton(
-                    onClick =  onNavigateToAccount ,
-                    backgroundColor = colorResource(id = R.color.bg_account)
+                    backgroundColor = Color.White,
+                    onClick =  {
+                        navController.navigate(Screens.AddAccount.route)
+                    } ,
+
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_add),
@@ -142,9 +147,8 @@ fun MainScreen(
                             delayMillis = 1500
                         )
                     ),
-                    editClick =
-                    {
-                        navController.navigate("account/${account.id}")
+                    editClick = {
+                        navController.navigate(route = Screens.EditAccount.passAccountId(account.id))
                     }
 
                 )
