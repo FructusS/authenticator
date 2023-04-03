@@ -13,6 +13,7 @@
     <string name="label_account">Название аккаунта</string>
     <string name="secret">Ключ</string>
     <string name="code">Код</string>
+    <string name="otptype">Тип</string>
     <string-array name="test">
         <item>Totp</item>
         <item>Hotp</item>

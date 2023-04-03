@@ -194,9 +194,9 @@ fun AccountScreen(
               //  LengthCodeRadioButton()
             }
             OtpTypeRadioButtons(viewModel)
-            if (viewModel.getCurrentOtpType() == OtpType.Hotp){
-                LengthCodeRadioButton()
-            }
+          //  if (viewModel.getCurrentOtpType() == OtpType.Hotp){
+            //    LengthCodeRadioButton()
+            //}
         }
     }
 }
@@ -224,7 +224,6 @@ fun LengthCodeRadioButton() {
 
                 )
                 Text(text.toString(), modifier = Modifier.padding(start = 8.dp))
-
             }
 
         }
@@ -238,57 +237,46 @@ fun OtpTypeRadioButtons(viewModel: AccountViewModel) {
     var expanded by remember { mutableStateOf(false) }
 
     Column() {
-        viewModel.otpTypeList.forEach { otpType ->
-            Row() {
+        Box() {
+            ExposedDropdownMenuBox(
 
-
-                ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = !expanded
+                }
+            ) {
+                TextField(
+                    readOnly = true,
+                    value = viewModel.getCurrentOtpType().name.uppercase(),
+                    onValueChange = { },
+                    label = { Text(text = stringResource(id = R.string.otptype)) },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expanded
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors()
+                )
+                ExposedDropdownMenu(
                     expanded = expanded,
-                    onExpandedChange = {
-                        expanded = !expanded
+                    onDismissRequest = {
+                        expanded = false
                     }
                 ) {
-                    TextField(
-                        readOnly = true,
-                        value = selectedOptionText,
-                        onValueChange = { },
-                        label = { Text("Categories") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = expanded
-                            )
-                        },
-                        colors = ExposedDropdownMenuDefaults.textFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = {
-                            expanded = false
-                        }
-                    ) {
-                        options.forEach { selectionOption ->
-                            DropdownMenuItem(
-                                onClick = {
-                                    selectedOptionText = selectionOption
-                                    expanded = false
-                                }
-                            ) {
-                                Text(text = selectionOption)
+                    viewModel.otpTypeList.forEach { otpType ->
+                        DropdownMenuItem(
+                            onClick = {
+                                viewModel.updateOtpType(otpType)
+                                expanded = false
                             }
+                        ) {
+                            Text(text = otpType.name.uppercase())
                         }
                     }
                 }
-                RadioButton(
-                    selected = (otpType == viewModel.getCurrentOtpType()),
-                    onClick = { viewModel.updateOtpType(otpType) }
-
-                )
-                Text(otpType.name.uppercase(), modifier = Modifier
-                    .padding(start = 8.dp)
-                    .align(Alignment.CenterVertically))
-
             }
 
         }
+
     }
 }
