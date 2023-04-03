@@ -8,11 +8,22 @@ import com.example.itplaneta.data.database.Account
 import com.example.itplaneta.data.database.AccountRepository
 import com.example.itplaneta.otp.OtpDigest
 import com.example.itplaneta.otp.OtpType
+import com.example.itplaneta.utils.Base32
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(private val accountRepository: AccountRepository) : ViewModel() {
+
+
+    private val base32 = Base32()
+    val otpTypeList = listOf(OtpType.Totp,OtpType.Hotp)
+    private var otpType by mutableStateOf(otpTypeList[0])
+
+    fun updateOtpType(otpType: OtpType) {
+        this.otpType = otpType
+    }
+    fun getCurrentOtpType()  = otpType
 
     var label by mutableStateOf("")
     private set
@@ -59,12 +70,20 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
             errorSecretText = "Секретный ключ не может быть пустым"
             return false
         }
+        try {
+            base32.decodeBase32(secret.uppercase())
+        }catch (ex : Exception){
+            errorSecret = true
+            errorSecretText = "Секретный ключ должен содержать только ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+            return false
+        }
+
 
         accountRepository.addAccount(Account(
             0,
             label = label,
             issuer = issuer,
-            tokenType = OtpType.Totp,
+            tokenType = otpType,
             algorithm = OtpDigest.Sha1,
             secret = secret,
             digits = 6,
@@ -79,6 +98,13 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
         errorSecret = false
     }
 
+    fun updateAccountField(accountId: Int) {
+        val account = getAccountById(accountId)
+        updateIssuer(account.issuer.toString())
+        updateLabel(account.label)
+        updateSecret(account.secret)
+        updateOtpType(account.tokenType)
+    }
 
 
     fun updateAccount(id: Int){
@@ -86,16 +112,17 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
             id.toLong(),
             label = label,
             issuer = issuer,
-            tokenType = OtpType.Totp,
+            tokenType = otpType,
             algorithm = OtpDigest.Sha1,
             secret = secret,
             digits = 6,
             counter = 0,
             period = 30))
     }
-    fun getAccountBySecret(secret : String) : Account? =
-        accountRepository.getAccountBySecret(secret)
 
-    fun getAccountById(id : Int) : Account =
+    private fun getAccountById(id : Int) : Account =
         accountRepository.getAccountById(id)
+
+
+
 }
