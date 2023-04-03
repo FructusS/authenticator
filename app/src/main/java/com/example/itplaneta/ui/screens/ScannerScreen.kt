@@ -2,35 +2,28 @@ package com.example.itplaneta.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.util.Log
-import android.util.Size
-import android.widget.Toast
-import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.ArrowBack
 import com.example.itplaneta.R
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.itplaneta.camera.QrCodeAnalyzer
+import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.viewmodels.QrScannerViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -39,15 +32,13 @@ import com.google.accompanist.permissions.rememberPermissionState
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostController) {
+fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewModel = hiltViewModel()) {
     val cameraPermission = rememberPermissionState(
         permission = Manifest.permission.CAMERA
     )
     val context = LocalContext.current
 
-
     Column() {
-        // Camera preview
         when (val status = cameraPermission.status) {
             is PermissionStatus.Denied -> {
                 AlertDialog(
@@ -63,16 +54,17 @@ fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostControlle
                     buttons = {
                         Row(modifier = Modifier.padding(8.dp)){
 
-
                             TextButton(onClick = { navController.popBackStack() })
                             {
 
                                 Text(stringResource(id = R.string.cancel))
                             }
                             Spacer(modifier = Modifier.weight(1f))
-                            TextButton(onClick = { cameraPermission.launchPermissionRequest() })
+                            TextButton(onClick = {
+                                cameraPermission.launchPermissionRequest()
+                            })
                             {
-                                Text(stringResource(R.string.accept))
+                                Text(stringResource(R.string.ok))
                             }
                         }
                     }
@@ -80,7 +72,18 @@ fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostControlle
                 )
             }
             is PermissionStatus.Granted -> {
-                Scaffold() {
+                Scaffold(
+                    topBar = {
+                        TopAppBar(backgroundColor = colorResource(id = R.color.bg_toolbar)) {
+                            IconButton(onClick = { navController.navigate(Screens.Main.route) }) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(id = R.string.back)
+                                )
+                            }
+                        }
+                    }
+                ) {
                     CameraPreview(
                         state = rememberCameraState(
                             context = context,
@@ -93,7 +96,7 @@ fun ScannerScreen(viewModel: QrScannerViewModel, navController: NavHostControlle
                                         QrCodeAnalyzer(
                                             onSuccess = {
                                                 viewModel.parse(it.text)
-                                                navController.navigate("main")
+                                                navController.navigate(Screens.Main.route)
                                             },
                                             onFail = {
 
