@@ -15,12 +15,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.itplaneta.ui.theme.ItplanetaTheme
-import com.example.itplaneta.ui.screens.MainScreen
+import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.screens.AccountScreen
+import com.example.itplaneta.ui.screens.MainScreen
 import com.example.itplaneta.ui.screens.ScannerScreen
-import com.example.itplaneta.ui.viewmodels.AccountViewModel
-import com.example.itplaneta.ui.viewmodels.MainViewModel
+import com.example.itplaneta.ui.theme.ItplanetaTheme
 import com.example.itplaneta.ui.viewmodels.QrScannerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,56 +29,47 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ItplanetaTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = colorResource(id = R.color.bg_main)
                 ) {
                     MyAppNavHost()
                 }
             }
         }
     }
+
     @Composable
     fun MyAppNavHost(
         modifier: Modifier = Modifier,
         navController: NavHostController = rememberNavController(),
-        startDestination: String = "main"
+        startDestination: String = Screens.Main.route
     ) {
         NavHost(
             modifier = modifier,
             navController = navController,
             startDestination = startDestination
         ) {
-            composable(route = "main") {
-                val viewModel = hiltViewModel<MainViewModel>()
-                MainScreen(viewModel,
-                    navController,
-                    onNavigateToAccount = {navController.navigate("account") }
-                )
+            composable(Screens.Main.route) {
+                MainScreen(navController = navController)
             }
-            composable(route ="account") {
-                val viewModel = hiltViewModel<AccountViewModel>()
-                AccountScreen(
-                    viewModel,
-                    onNavigateToMain =  { navController.popBackStack() },
-                    onNavigateToScanner = {navController.navigate("qrscanner")},
-                )
+
+            composable(route = Screens.AddAccount.route) {
+                AccountScreen(navController = navController)
             }
-            composable(route ="account/{accountId}",
-                arguments = listOf(navArgument("accountId"){ type = NavType.IntType})
-            ) {
-                    backStackEntry ->
-                val viewModel = hiltViewModel<AccountViewModel>()
-                AccountScreen(viewModel,
-                    onNavigateToMain =  { navController.popBackStack() },
-                    onNavigateToScanner = {navController.navigate("qrscanner")},
-                    backStackEntry.arguments?.getInt("accountId")
-                )
+            composable(
+                route = Screens.EditAccount.route,
+                arguments = listOf(navArgument("accountId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                backStackEntry.arguments?.getInt("accountId")?.let {
+                    AccountScreen(
+                        navController = navController,
+                        it
+                    )
+                }
+
             }
-            composable(route ="qrscanner") {
-                val viewModel = hiltViewModel<QrScannerViewModel>()
-                ScannerScreen(viewModel,navController)
+            composable(route = Screens.QrScanner.route) {
+                ScannerScreen(navController)
             }
         }
     }
