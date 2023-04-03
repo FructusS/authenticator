@@ -1,6 +1,6 @@
 package com.example.itplaneta.otp
 
-import com.example.itplaneta.data.Base32String
+import com.example.itplaneta.utils.Base32
 import java.nio.ByteBuffer
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -11,6 +11,8 @@ import kotlin.math.pow
 
 @Singleton
 class OtpGenerator @Inject constructor() {
+
+    private val base32 = Base32()
 
     fun generateHotp(
         secret: ByteArray,
@@ -64,7 +66,7 @@ class OtpGenerator @Inject constructor() {
         }
     fun transformToBytes(key: String): ByteArray {
         val trimmed = key.trim().replace("-", "").replace(" ", "")
-        return Base32String.decode(trimmed)
+        return base32.decodeBase32(trimmed)
     }
 
 }
