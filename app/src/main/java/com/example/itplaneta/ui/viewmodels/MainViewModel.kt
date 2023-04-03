@@ -7,6 +7,7 @@ import com.example.itplaneta.data.database.Account
 
 import com.example.itplaneta.data.database.AccountRepository
 import com.example.itplaneta.otp.OtpGenerator
+import com.example.itplaneta.otp.OtpType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -19,15 +20,11 @@ class MainViewModel @Inject constructor(
     private val otpGenerator: OtpGenerator
     ): ViewModel() {
 
-
     private val secretBytes = mutableMapOf<String, ByteArray>()
     val accounts = accountRepository.getAccounts()
     val codes = mutableStateMapOf<Long, String>()
     val timerProgresses = mutableStateMapOf<Long, Float>()
     val timerValues = mutableStateMapOf<Long, Long>()
-
-
-
 
     init {
         viewModelScope.launch {
@@ -35,16 +32,35 @@ class MainViewModel @Inject constructor(
                 secretBytes.clear()
                 list.forEach {
                     secretBytes[it.secret] = otpGenerator.transformToBytes(it.secret)
-                    generateTotp(it)
+                    if (it.tokenType == OtpType.Hotp){
+                        generateHotp(it)
+                    }
+                    if (it.tokenType == OtpType.Totp){
+                        generateTotp(it)
+
+                    }
                 }
             }
+        }
+    }
+
+    private fun generateHotp(account: Account) {
+        val keyByte = secretBytes[account.secret]
+        if (keyByte != null) {
+            codes[account.id] = otpGenerator.generateHotp(
+                secret = keyByte,
+                counter = account.counter.toLong(),
+                digits = account.digits,
+                digest = account.algorithm
+            )
         }
     }
 
     private val totpTimer = fixedRateTimer(name = "totp-timer", daemon = false, period = 1000L) {
         viewModelScope.launch(Dispatchers.Main) {
             accounts.collect { list -> list.forEach {
-                generateTotp(it)
+                if (it.tokenType == OtpType.Totp)
+                 generateTotp(it)
                 }
             }
         }
