@@ -18,7 +18,7 @@ class OtpGenerator @Inject constructor() {
         secret: ByteArray,
         counter: Long,
         digits: Int,
-        digest: OtpDigest
+        digest: OtpAlgorithm
     ): String {
         val hash = Mac.getInstance(digest.algorithmName).let { mac ->
             val byteCounter = ByteBuffer.allocate(8)
@@ -50,18 +50,18 @@ class OtpGenerator @Inject constructor() {
         interval: Long,
         seconds: Long,
         digits: Int,
-        digest: OtpDigest
+        digest: OtpAlgorithm
     ): String {
         val counter = floor((seconds / interval).toDouble()).toLong()
         return generateHotp(secret, counter, digits, digest)
     }
 
-    private val OtpDigest.algorithmName: String
+    private val OtpAlgorithm.algorithmName: String
         get() {
             return when (this) {
-                OtpDigest.Sha1 -> "HmacSHA1"
-                OtpDigest.Sha256 -> "HmacSHA256"
-                OtpDigest.Sha512 -> "HmacSHA512"
+                OtpAlgorithm.Sha1 -> "HmacSHA1"
+                OtpAlgorithm.Sha256 -> "HmacSHA256"
+                OtpAlgorithm.Sha512 -> "HmacSHA512"
             }
         }
     fun transformToBytes(key: String): ByteArray {

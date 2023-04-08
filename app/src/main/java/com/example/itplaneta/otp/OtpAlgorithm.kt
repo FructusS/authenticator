@@ -1,6 +1,6 @@
 package com.example.itplaneta.otp
 
-enum class OtpDigest {
+enum class OtpAlgorithm {
     Sha1,
     Sha256,
     Sha512

@@ -4,9 +4,8 @@ package com.example.itplaneta.utils
 import android.net.Uri
 import android.util.Log
 import com.example.itplaneta.data.database.Account
-import com.example.itplaneta.otp.OtpDigest
+import com.example.itplaneta.otp.OtpAlgorithm
 import com.example.itplaneta.otp.OtpType
-import java.net.URLDecoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,8 +38,8 @@ class UriOtpParser @Inject constructor() {
         val secret = uri.getQueryParameter("secret") ?: ""
 
         val algorithm = when (val algotype = uri.getQueryParameter("algorithm")) {
-            null -> OtpDigest.Sha1
-            else -> OtpDigest.Sha1
+            null -> OtpAlgorithm.Sha1
+            else -> OtpAlgorithm.Sha1
         }
         val digits = uri.getQueryParameter("digits") ?: "6"
 

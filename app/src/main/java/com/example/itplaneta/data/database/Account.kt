@@ -4,7 +4,7 @@ import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.itplaneta.otp.OtpDigest
+import com.example.itplaneta.otp.OtpAlgorithm
 import com.example.itplaneta.otp.OtpType
 import kotlinx.android.parcel.Parcelize
 
@@ -22,7 +22,7 @@ data class Account (
     @ColumnInfo(name = "tokenType")
     val tokenType: OtpType,
     @ColumnInfo(name = "algorithm")
-    val algorithm: OtpDigest,
+    val algorithm: OtpAlgorithm,
     @ColumnInfo(name = "secret")
     val secret: String,
     @ColumnInfo(name = "digits", defaultValue = "6")
