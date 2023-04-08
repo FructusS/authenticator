@@ -7,7 +7,7 @@ data class OtpToken(
     val issuer: String?,
     val label: String,
     val tokenType: OtpType,
-    val algorithm: OtpDigest,
+    val algorithm: OtpAlgorithm,
     val secret: String,
     val digits: Int,
     val counter: Long,
