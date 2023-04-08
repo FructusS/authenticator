@@ -2,25 +2,25 @@ package com.example.itplaneta.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.itplaneta.R
-import com.example.itplaneta.otp.OtpType
 import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
 
@@ -28,16 +28,16 @@ import com.example.itplaneta.ui.viewmodels.AccountViewModel
 @Composable
 fun AccountScreen(
     navController: NavController,
-    accountId : Int? = null,
-    viewModel : AccountViewModel = hiltViewModel()
-    ) {
+    accountId: Int? = null,
+    viewModel: AccountViewModel = hiltViewModel()
+) {
 
-    LaunchedEffect(key1 = null){
-        if (accountId != null){
+    LaunchedEffect(key1 = null) {
+        if (accountId != null) {
             viewModel.updateAccountField(accountId)
         }
     }
-    
+
     Scaffold(
 
         floatingActionButton = {
@@ -45,18 +45,15 @@ fun AccountScreen(
                 backgroundColor = colorResource(id = R.color.bg_floatingbutton),
                 text = { Text(text = stringResource(id = R.string.save)) },
                 onClick = {
-                    if (accountId == null){
+                    if (accountId == null) {
                         if (viewModel.addAccount()) {
                             navController.navigate(Screens.Main.route)
                         }
-                    }
-
-                    else{
+                    } else {
                         viewModel.updateAccount(accountId)
                         navController.navigate(Screens.Main.route)
                     }
-                }
-                                                            ,
+                },
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_save),
@@ -77,7 +74,7 @@ fun AccountScreen(
                 }
                 Spacer(Modifier.weight(1f, true))
 
-                IconButton(onClick = {navController.navigate(Screens.QrScanner.route)}) {
+                IconButton(onClick = { navController.navigate(Screens.QrScanner.route) }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_qr_code_scanner),
                         contentDescription = "qrscanner"
@@ -89,10 +86,12 @@ fun AccountScreen(
         Column(
 
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(5.dp, 5.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
+            verticalArrangement = Arrangement.Top,
+
+
+            ) {
             var shownSecret by rememberSaveable { mutableStateOf(false) }
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -148,7 +147,7 @@ fun AccountScreen(
                 )
             }
 
-            if (accountId == null){
+            if (accountId == null) {
                 OutlinedTextField(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -191,92 +190,159 @@ fun AccountScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 }
-              //  LengthCodeRadioButton()
+                //  LengthCodeRadioButton()
             }
-            OtpTypeRadioButtons(viewModel)
-          //  if (viewModel.getCurrentOtpType() == OtpType.Hotp){
-            //    LengthCodeRadioButton()
-            //}
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                OtpType(viewModel = viewModel)
+                OtpAlgorithm(viewModel = viewModel)
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                CountDigits(viewModel = viewModel)
+                OtpAlgorithm(viewModel = viewModel)
+            }
         }
     }
 }
 
 @Composable
-fun LengthCodeRadioButton() {
-    val radioOptions = listOf(6,8,10)
-    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0] ) }
-    Column {
-        radioOptions.forEach { text ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = (text == selectedOption),
-                        onClick = {
-                            onOptionSelected(text)
-                        }
-                    )
-                    .padding(horizontal = 16.dp)
-            ) {
-                RadioButton(
-                    selected = (text == selectedOption),
-                    onClick = { onOptionSelected(text) }
+fun CountDigits(viewModel: AccountViewModel) {
+    Column() {
+        OutlinedTextField(
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.wrapContentWidth(),
+            value = viewModel.digits,
+            onValueChange = {
+                viewModel.updateDigits(it)
+            },
 
+            maxLines = 1,
+            isError = viewModel.errorLabel,
+            label = {
+                Text(
+                    stringResource(id = R.string.digits),
+                    color = if (viewModel.errorDigits) Color.Red else Color.Black
                 )
-                Text(text.toString(), modifier = Modifier.padding(start = 8.dp))
-            }
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = colorResource(id = R.color.border),
+                unfocusedBorderColor = colorResource(id = R.color.border),
+            )
+        )
+    }
 
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun OtpType(viewModel: AccountViewModel) {
+
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(modifier = Modifier.wrapContentWidth()) {
+        ExposedDropdownMenuBox(
+
+            expanded = expanded,
+            onExpandedChange = {
+                expanded = !expanded
+            }
+        ) {
+            OutlinedTextField(
+                readOnly = true,
+                value = viewModel.otpType.name.uppercase(),
+                onValueChange = { },
+                label = {
+                    Text(
+                        text = stringResource(id = R.string.otpalgorithm),
+                        color = Color.Black
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expanded
+                    )
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = colorResource(id = R.color.border),
+                    unfocusedBorderColor = colorResource(id = R.color.border),
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                }
+            ) {
+                viewModel.otpTypeList.forEach { otpType ->
+                    DropdownMenuItem(
+                        onClick = {
+                            viewModel.updateOtpType(otpType)
+                            expanded = false
+                        }
+                    ) {
+                        Text(text = otpType.name.uppercase())
+                    }
+                }
+            }
         }
+
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun OtpTypeRadioButtons(viewModel: AccountViewModel) {
+fun OtpAlgorithm(viewModel: AccountViewModel) {
 
     var expanded by remember { mutableStateOf(false) }
 
-    Column() {
-        Box() {
-            ExposedDropdownMenuBox(
+    Row(modifier = Modifier.wrapContentWidth()) {
+        ExposedDropdownMenuBox(
 
+            expanded = expanded,
+            onExpandedChange = {
+                expanded = !expanded
+            }
+        ) {
+            OutlinedTextField(
+                readOnly = true,
+                value = viewModel.otpAlgorithm.name.uppercase(),
+                onValueChange = { },
+                label = {
+                    Text(
+                        text = stringResource(id = R.string.otptype),
+                        color = Color.Black
+                    )
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expanded
+                    )
+                },
+                colors = ExposedDropdownMenuDefaults.textFieldColors()
+            )
+            ExposedDropdownMenu(
                 expanded = expanded,
-                onExpandedChange = {
-                    expanded = !expanded
+                onDismissRequest = {
+                    expanded = false
                 }
             ) {
-                TextField(
-                    readOnly = true,
-                    value = viewModel.getCurrentOtpType().name.uppercase(),
-                    onValueChange = { },
-                    label = { Text(text = stringResource(id = R.string.otptype)) },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expanded
-                        )
-                    },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors()
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = {
-                        expanded = false
-                    }
-                ) {
-                    viewModel.otpTypeList.forEach { otpType ->
-                        DropdownMenuItem(
-                            onClick = {
-                                viewModel.updateOtpType(otpType)
-                                expanded = false
-                            }
-                        ) {
-                            Text(text = otpType.name.uppercase())
+                viewModel.otpAlgorithmLists.forEach { otpDigest ->
+                    DropdownMenuItem(
+                        onClick = {
+                            viewModel.updateOtpAlgorithm(otpDigest)
+                            expanded = false
                         }
+                    ) {
+                        Text(text = otpDigest.name.uppercase())
                     }
                 }
             }
-
         }
-
     }
 }
