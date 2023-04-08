@@ -6,43 +6,67 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.itplaneta.data.database.Account
 import com.example.itplaneta.data.database.AccountRepository
-import com.example.itplaneta.otp.OtpDigest
+import com.example.itplaneta.otp.OtpAlgorithm
 import com.example.itplaneta.otp.OtpType
 import com.example.itplaneta.utils.Base32
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountViewModel @Inject constructor(private val accountRepository: AccountRepository) : ViewModel() {
+class AccountViewModel @Inject constructor(private val accountRepository: AccountRepository) :
+    ViewModel() {
 
 
     private val base32 = Base32()
-    val otpTypeList = listOf(OtpType.Totp,OtpType.Hotp)
-    private var otpType by mutableStateOf(otpTypeList[0])
+
+    //region OtpDigest(algorithm)
+
+    val otpAlgorithmLists = listOf(OtpAlgorithm.Sha1, OtpAlgorithm.Sha256, OtpAlgorithm.Sha512)
+    var otpAlgorithm by mutableStateOf(otpAlgorithmLists[0])
+        private set
+
+    fun updateOtpAlgorithm(otpAlgorithm: OtpAlgorithm) {
+        this.otpAlgorithm = otpAlgorithm
+    }
+
+    //endregion
+
+    //region OtpType
+    val otpTypeList = listOf(OtpType.Totp, OtpType.Hotp)
+    var otpType by mutableStateOf(otpTypeList[0])
+        private set
 
     fun updateOtpType(otpType: OtpType) {
         this.otpType = otpType
     }
-    fun getCurrentOtpType()  = otpType
 
+
+    //endregion
+
+    //region label
     var label by mutableStateOf("")
-    private set
+        private set
 
     var errorLabel by mutableStateOf(false)
         private set
     var errorLabelText by mutableStateOf("")
         private set
-    fun updateLabel(newLabel : String){
+
+    fun updateLabel(newLabel: String) {
         this.label = newLabel
     }
+    //endregion
 
+    //region issuer
     var issuer by mutableStateOf("")
         private set
 
-    fun updateIssuer(newIssuer : String){
+    fun updateIssuer(newIssuer: String) {
         this.issuer = newIssuer
     }
+    //endregion
 
+    //region secret
     var secret by mutableStateOf("")
         private set
 
@@ -51,44 +75,68 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
 
     var errorSecretText by mutableStateOf("")
         private set
-    fun updateSecret(newSecret : String){
+
+    fun updateSecret(newSecret: String) {
         this.secret = newSecret
     }
 
+    //endregion secret
 
-    fun addAccount() : Boolean{
+    //region digits
+    var digits by mutableStateOf("6")
+        private set
+    var errorDigits by mutableStateOf(false)
+        private set
+
+    fun updateDigits(oldDigits: String) {
+        this.digits = oldDigits
+    }
+    //endregion
+
+    fun addAccount(): Boolean {
         resetErrors()
 
-        if (label.isEmpty()){
+        if (label.isEmpty()) {
             errorLabel = true
             errorLabelText = "Название аккаунта не может быть пустым"
             return false
         }
 
-        if (secret.isEmpty()){
+        if (secret.isEmpty()) {
             errorSecret = true
             errorSecretText = "Секретный ключ не может быть пустым"
             return false
         }
+        if (digits.isEmpty()){
+            errorDigits = true
+            return false
+        }
+        if (digits.toInt() < 6 || digits.toInt() > 10){
+            errorDigits = true
+            return false
+        }
         try {
             base32.decodeBase32(secret.uppercase())
-        }catch (ex : Exception){
+        } catch (ex: Exception) {
             errorSecret = true
-            errorSecretText = "Секретный ключ должен содержать только ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+            errorSecretText =
+                "Секретный ключ должен содержать только ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
             return false
         }
 
 
-        accountRepository.addAccount(Account(
-            0,
-            label = label,
-            issuer = issuer,
-            tokenType = otpType,
-            algorithm = OtpDigest.Sha1,
-            secret = secret,
-            digits = 6,
-            counter = 0,
-            period = 30)
+        accountRepository.addAccount(
+            Account(
+                0,
+                label = label,
+                issuer = issuer,
+                tokenType = otpType,
+                algorithm = otpAlgorithm,
+                secret = secret,
+                digits = digits.toInt(),
+                counter = 0,
+                period = 30
+            )
         )
         return true
     }
@@ -107,22 +155,23 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
     }
 
 
-    fun updateAccount(id: Int){
-        accountRepository.updateAccount(Account(
-            id.toLong(),
-            label = label,
-            issuer = issuer,
-            tokenType = otpType,
-            algorithm = OtpDigest.Sha1,
-            secret = secret,
-            digits = 6,
-            counter = 0,
-            period = 30))
+    fun updateAccount(id: Int) {
+        accountRepository.updateAccount(
+            Account(
+                id.toLong(),
+                label = label,
+                issuer = issuer,
+                tokenType = otpType,
+                algorithm = otpAlgorithm,
+                secret = secret,
+                digits = digits.toInt(),
+                counter = 0,
+                period = 30
+            )
+        )
     }
 
-    private fun getAccountById(id : Int) : Account =
+    private fun getAccountById(id: Int): Account =
         accountRepository.getAccountById(id)
-
-
 
 }
