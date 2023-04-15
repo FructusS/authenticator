@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">authenticator</string>
-    <string name="title_activity_add_account_screen">AddAccountScreen</string>
     <string name="save">Save</string>
     <string name="back">Back</string>
     <string name="cancel">Cancel</string>
@@ -13,8 +12,14 @@
     <string name="label_account">Account label</string>
     <string name="secret">Secret key</string>
     <string name="code">Code</string>
-    <string name="otptype">Type</string>
-    <string name="otpalgorithm">Algorithm</string>
-    <string name="digits">digits from 6 to 10</string>
+    <string name="otp_type">Type</string>
+    <string name="otp_type_by_time">By time</string>
+    <string name="otp_type_by_counter">By counter</string>
+    <string name="otp_algorithm">Algorithm</string>
+    <string name="length_otp_code">Length code</string>
+    <string name="period_otp_code">Period code</string>
+    <string name="counter_otp_code">Counter code</string>
+    <string name="length_code_from_6_to_10">Length code from 6 to 10</string>
+    <string name="copied">Copied!</string>
 
 </resources>
