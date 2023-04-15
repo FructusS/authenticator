@@ -1,6 +1,6 @@
 package com.example.itplaneta.otp
 
-import com.example.itplaneta.utils.Base32
+import org.apache.commons.codec.binary.Base32
 import java.nio.ByteBuffer
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -66,7 +66,7 @@ class OtpGenerator @Inject constructor() {
         }
     fun transformToBytes(key: String): ByteArray {
         val trimmed = key.trim().replace("-", "").replace(" ", "")
-        return base32.decodeBase32(trimmed)
+        return base32.decode(trimmed)
     }
 
 }
