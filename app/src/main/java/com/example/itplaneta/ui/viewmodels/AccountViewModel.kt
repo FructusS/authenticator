@@ -19,7 +19,7 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
 
     private val base32 = Base32()
 
-    //region OtpDigest(algorithm)
+    //region Otp algorithm
 
     val otpAlgorithmLists = listOf(OtpAlgorithm.Sha1, OtpAlgorithm.Sha256, OtpAlgorithm.Sha512)
     var otpAlgorithm by mutableStateOf(otpAlgorithmLists[0])
@@ -93,6 +93,33 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
     }
     //endregion
 
+    //region period
+
+    var period by mutableStateOf("30")
+    private set
+    var errorPeriod by mutableStateOf(false)
+        private set
+
+    fun updatePeriod(oldPeriod: String) {
+        this.period = oldPeriod
+    }
+
+
+
+    //endregion
+
+    //region counter
+
+    var counter by mutableStateOf("0")
+        private set
+    var errorCounter by mutableStateOf(false)
+        private set
+
+    fun updateCounter(oldCounter: String) {
+        this.counter = oldCounter
+    }
+    //endregion
+
     fun addAccount(): Boolean {
         resetErrors()
 
@@ -105,6 +132,11 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
         if (secret.isEmpty()) {
             errorSecret = true
             errorSecretText = "Секретный ключ не может быть пустым"
+            return false
+        }
+        if (secret.length < 8) {
+            errorSecret = true
+            errorSecretText = "Секретный ключ короткий"
             return false
         }
         if (digits.isEmpty()){
@@ -134,8 +166,8 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
                 algorithm = otpAlgorithm,
                 secret = secret,
                 digits = digits.toInt(),
-                counter = 0,
-                period = 30
+                counter = counter.toLong(),
+                period = period.toInt()
             )
         )
         return true
@@ -144,34 +176,43 @@ class AccountViewModel @Inject constructor(private val accountRepository: Accoun
     private fun resetErrors() {
         errorLabel = false
         errorSecret = false
+        errorDigits = false
+        errorPeriod = false
+        errorCounter = false
+
     }
 
     fun updateAccountField(accountId: Int) {
         val account = getAccountById(accountId)
-        updateIssuer(account.issuer.toString())
+
+        account.issuer?.let { updateIssuer(it) }
+
         updateLabel(account.label)
         updateSecret(account.secret)
         updateOtpType(account.tokenType)
+        updateOtpAlgorithm(account.algorithm)
+        updateDigits(account.digits.toString())
+        updateCounter(account.counter.toString())
+        updatePeriod(account.period.toString())
     }
 
 
     fun updateAccount(id: Int) {
         accountRepository.updateAccount(
             Account(
-                id.toLong(),
+                id,
                 label = label,
                 issuer = issuer,
                 tokenType = otpType,
                 algorithm = otpAlgorithm,
                 secret = secret,
                 digits = digits.toInt(),
-                counter = 0,
-                period = 30
+                counter = counter.toLong(),
+                period = period.toInt()
             )
         )
     }
 
     private fun getAccountById(id: Int): Account =
         accountRepository.getAccountById(id)
-
 }
