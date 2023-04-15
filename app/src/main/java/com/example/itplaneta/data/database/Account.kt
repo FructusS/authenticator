@@ -14,7 +14,7 @@ data class Account (
 
     @ColumnInfo(name = "id")
     @PrimaryKey(autoGenerate = true)
-    val id: Long,
+    val id: Int,
     @ColumnInfo(name = "issuer")
     val issuer: String?,
     @ColumnInfo(name = "label")
@@ -28,7 +28,7 @@ data class Account (
     @ColumnInfo(name = "digits", defaultValue = "6")
     val digits: Int,
     @ColumnInfo(name = "counter", defaultValue = "0")
-    val counter: Int,
+    val counter: Long,
     @ColumnInfo(name = "period", defaultValue = "30")
     val period: Int
 
