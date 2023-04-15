@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +39,8 @@ import com.example.itplaneta.otp.OtpType
 import com.example.itplaneta.ui.navigation.Screens
 
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(
     navController: NavController,
@@ -46,11 +49,12 @@ fun MainScreen(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
-            Column() {
+            Column {
 
                 FloatingActionButton(
-                    backgroundColor = Color.White,
+                    backgroundColor = colors.primary,
                     onClick =  {
                         navController.navigate(Screens.AddAccount.route)
                     } ,
@@ -70,12 +74,11 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(list.value) { account ->
-                var visible = true
+
                 val code = viewModel.codes[account.id]
                 Account(
                     deleteClick = {
@@ -83,12 +86,12 @@ fun MainScreen(
                     },
                     copyClick = {
                         clipboardManager.setText(AnnotatedString(code.toString()))
-                        Toast.makeText(context, "Скопировано", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getText(R.string.copied), Toast.LENGTH_SHORT).show()
                     },
                     issuer = if (account.issuer != "") { ->
-                        Text(account.issuer.toString(), maxLines = 1, fontSize = 25.sp)
+                        Text(account.issuer.toString(), maxLines = 1, fontSize = 25.sp, color = colors.secondaryVariant)
                     } else null,
-                    label = { Text(account.label, maxLines = 1, fontSize = 25.sp) },
+                    label = { Text(account.label, maxLines = 1, fontSize = 25.sp, color = colors.secondaryVariant)},
 
                     indicator = {
                         if (OtpType.Totp == account.tokenType) {
@@ -103,17 +106,16 @@ fun MainScreen(
                                         targetValue = timerProgress,
                                         animationSpec = tween(durationMillis = 500)
                                     )
-                                    CircularProgressIndicator(progress = animatedTimerProgress)
+                                    CircularProgressIndicator(progress = animatedTimerProgress,color = if (timerValue!! <= 10) colors.error else colors.surface)
                                 }
                                 if (timerValue != null) {
-                                    Text(timerValue.toString())
+                                    Text(timerValue.toString(), color = colors.secondaryVariant)
                                 }
                             }
                         }
                         if (OtpType.Hotp == account.tokenType) {
-                            FilledIconButton(onClick = {
-                            }) {
-                                Text(account.counter.toString())
+                            OutlinedButton(onClick = { viewModel.incrementHotpCounter(account.id)}) {
+                                Text(account.counter.toString(), color = colors.secondaryVariant)
                             }
                         }
                     },
@@ -132,29 +134,18 @@ fun MainScreen(
                             }
                         ) { animatedCode ->
                             if (animatedCode != null) {
-                                if (visible) {
-                                    Text(animatedCode)
-                                } else {
-                                    Text("\u2022".repeat(animatedCode.length))
-                                }
+
+                                    Text(animatedCode, color = colors.secondaryVariant)
+
                             }
                         }
                     },
-                    modifier = Modifier.animateItemPlacement(
-                        animationSpec = tween(
-                            durationMillis = 1500,
-                            easing = LinearOutSlowInEasing,
-                            delayMillis = 1500
-                        )
-                    ),
                     editClick = {
                         navController.navigate(route = Screens.EditAccount.passAccountId(account.id))
                     }
-
                 )
             }
         }
-
     }
 }
 
@@ -164,42 +155,18 @@ private fun Account(
     deleteClick: () -> Unit,
     copyClick: () -> Unit,
     editClick: () -> Unit,
-    modifier: Modifier = Modifier,
     issuer: (@Composable () -> Unit)?,
     label: @Composable () -> Unit,
     indicator: @Composable () -> Unit,
     code: @Composable () -> Unit,
 
     ) {
-    val localDensity = LocalDensity.current
-    val shape by animateValueAsState(
-        targetValue = MaterialTheme.shapes.large,
-        typeConverter = TwoWayConverter(
-            convertToVector = {
-                AnimationVector(
-                    v1 = it.topStart.toPx(Size.Unspecified, localDensity),
-                    v2 = it.topEnd.toPx(Size.Unspecified, localDensity),
-                    v3 = it.bottomStart.toPx(Size.Unspecified, localDensity),
-                    v4 = it.bottomEnd.toPx(Size.Unspecified, localDensity)
-                )
-            },
-            convertFromVector = {
-                RoundedCornerShape(
-                    topStart = it.v1,
-                    topEnd = it.v2,
-                    bottomStart = it.v3,
-                    bottomEnd = it.v4
-                )
-            }
-        )
-    )
-    ElevatedCard(
-        modifier = modifier,
-        shape = shape
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+
     ) {
         Column(
-            modifier = Modifier
-                .padding(12.dp),
+            modifier = Modifier.padding(12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -207,7 +174,7 @@ private fun Account(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
+//                    color = MaterialTheme.colorScheme.secondaryContainer,
                     shape = MaterialTheme.shapes.large
                 ) {
                 }
@@ -231,10 +198,11 @@ private fun Account(
                 }
                 Spacer(Modifier.weight(1f))
 
-                IconButton(onClick = editClick) {
+                IconButton(onClick = copyClick) {
                     Icon(
-                        painterResource(id = R.drawable.ic_edit),
-                        contentDescription = "edit"
+                        painterResource(id = R.drawable.ic_content_copy),
+                        contentDescription = "copy",
+                        tint = colors.secondaryVariant
                     )
                 }
             }
@@ -243,7 +211,7 @@ private fun Account(
                 visible = true,
             ) {
                 Column {
-                    Divider(Modifier.padding(vertical = 12.dp))
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
@@ -256,17 +224,25 @@ private fun Account(
                         }
                         Spacer(Modifier.weight(1f))
                         IconButton(onClick = deleteClick) {
-                            Icon(Icons.Default.Delete, contentDescription = "delete")
+                            Icon(Icons.Default.Delete, contentDescription = "delete", tint = colors.secondaryVariant)
                         }
-                        IconButton(onClick = copyClick) {
+
+                        IconButton(onClick = editClick) {
                             Icon(
-                                painterResource(id = R.drawable.ic_content_copy),
-                                contentDescription = "copy"
+                                painterResource(id = R.drawable.ic_edit),
+                                contentDescription = "edit",
+                                tint = colors.secondaryVariant
                             )
                         }
                     }
                 }
             }
+
         }
     }
+    Divider(modifier = Modifier
+        .height(1.dp)
+        .fillMaxWidth(),
+        color = colors.secondary)
+
 }
