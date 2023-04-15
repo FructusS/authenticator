@@ -36,4 +36,9 @@ class AccountRepository @Inject constructor(private val accountDao: AccountDao) 
     fun getAccountById(id: Int) : Account
     =  accountDao.getAccountById(id)
 
+    fun incrementHotpCounter(id: Int) {
+        val account = getAccountById(id)
+        updateAccount( account.copy(counter = account.counter + 1))
+    }
+
 }
