@@ -2,68 +2,78 @@ package com.example.itplaneta.utils
 
 
 import android.net.Uri
-import android.util.Log
 import com.example.itplaneta.data.database.Account
 import com.example.itplaneta.otp.OtpAlgorithm
 import com.example.itplaneta.otp.OtpType
 import javax.inject.Inject
 import javax.inject.Singleton
 
+class OtpUriParseException(message: String) : Exception(message)
+
 @Singleton
 class UriOtpParser @Inject constructor() {
-    fun uriOtpParser(uri: String): Account? {
-        val otpstring = uri.replace("%40","@").replace("%3A",":")
+    fun uriOtpParser(otpuri: String): Account? {
 
-        val uri = Uri.parse(otpstring)
-
-        val schema = uri.scheme
-        if (schema != "otpauth") {
-            return null
+        val uri = Uri.parse(otpuri.replace("%40","@").replace("%3A",":"))
+        if (uri.scheme != "otpauth") {
+            throw OtpUriParseException("Invalid URI scheme")
         }
-        val otpType = when (uri.path) {
+        if (uri.authority == null) {
+            throw OtpUriParseException("Missing authority")
+        }
+        val pathParts = uri.pathSegments
+        if (pathParts.size != 1 || pathParts[0].isEmpty()) {
+            throw OtpUriParseException("Invalid path")
+        }
+        val otpTypeString = uri.host
+        if (otpTypeString != "totp" && otpTypeString != "hotp") {
+            throw OtpUriParseException("Invalid type")
+        }
+        val otpType = when (otpTypeString) {
             "totp" -> OtpType.Totp
-
             "hotp" -> OtpType.Hotp
-
-            else -> {OtpType.Totp}
+            else -> {
+                throw OtpUriParseException("Invalid type")
+            }
         }
+        val secret = uri.getQueryParameter("secret") ?: throw OtpUriParseException("Missing secret")
         val issuer = uri.getQueryParameter("issuer") ?: ""
 
         val label = try {
-            Log.i("123",      uri.pathSegments[0])
-            uri.pathSegments[0].substring(issuer.count() + 1)
+            uri.pathSegments[0]
         } catch (e: Exception) {
-            e.printStackTrace()
+            throw OtpUriParseException("Invalid label")
         }
-        val secret = uri.getQueryParameter("secret") ?: ""
-
-        val algorithm = when (val algotype = uri.getQueryParameter("algorithm")) {
-            null -> OtpAlgorithm.Sha1
-            else -> OtpAlgorithm.Sha1
+        val algorithmString = uri.getQueryParameter("algorithm") ?: "SHA1"
+        val algorithm = when (algorithmString.uppercase()) {
+            "SHA1" -> OtpAlgorithm.Sha1
+            "SHA256" -> OtpAlgorithm.Sha256
+            "SHA512" -> OtpAlgorithm.Sha512
+            else -> {
+                throw OtpUriParseException("Invalid algorithm")
+            }
         }
-        val digits = uri.getQueryParameter("digits") ?: "6"
-
-
-        val paramPeriod = uri.getQueryParameter("period") ?: "30"
-        val period = if (otpType == OtpType.Hotp) null else paramPeriod.toInt()
-
-
-        val paramCounter = uri.getQueryParameter("counter")
-        if (otpType == OtpType.Hotp && paramCounter == null) {
+        val digitsString = uri.getQueryParameter("digits") ?: "6"
+        val digits = digitsString.toInt()
+        val periodString = uri.getQueryParameter("period") ?: "30"
+        val period = periodString.toInt()
+        val counterString = uri.getQueryParameter("counter") ?: "0"
+        val counter = try {
+            counterString.toLong()
+        } catch (e: NumberFormatException) {
             return null
         }
-        val counter = paramCounter?.toInt()
 
         return Account(
             id = 0,
-            label = label.toString(),
+            issuer = issuer,
+            label = label,
             tokenType = otpType,
-            counter = counter ?: 0,
-            secret = secret,
-            period = period ?: 30,
-            digits = digits.toInt(),
             algorithm = algorithm,
-            issuer = issuer
+            secret = secret,
+            digits = digits,
+            counter = counter,
+            period = period
         )
     }
 }
