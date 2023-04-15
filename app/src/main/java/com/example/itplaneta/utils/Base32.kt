@@ -13,20 +13,12 @@ class Base32 @Inject constructor() {
         val secret = input.replace(" ","").uppercase()
 
         val base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-       // Проверяем, что строка содержит только символы из алфавита Base32
 
         for (char in secret) {
             if (char !in base32Chars) {
                 throw IllegalArgumentException("String is not base32 char")
             }
         }
-
-        // Проверяем, что длина строки кратна 8
-        if (secret.length % 8 != 0) {
-            throw IllegalArgumentException("String is not divisible by 8")
-        }
-
-
 
         val bytes = ByteArray(secret.length * 5 / 8)
         var byteIndex = 0
@@ -47,11 +39,6 @@ class Base32 @Inject constructor() {
                 currentByte = charValue
                 bitsRemaining += 3
             }
-        }
-
-        // Если строка закончилась на неполный байт, то это ошибка
-        if (bitsRemaining < 8 && currentByte shl bitsRemaining != 0) {
-            throw IllegalArgumentException("Invalid Base32 string length")
         }
 
         return bytes
