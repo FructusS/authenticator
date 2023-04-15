@@ -51,6 +51,8 @@ android {
 
 dependencies {
 
+    //mlkit
+    implementation 'com.google.mlkit:barcode-scanning:17.1.0'
     //base32
     implementation("commons-codec:commons-codec:1.15")
 
@@ -80,8 +82,8 @@ dependencies {
     implementation "androidx.camera:camera-view:$camera_version"
 
     // Zxing
-    implementation 'com.google.zxing:core:3.5.0'
-
+    implementation "com.google.zxing:core:3.5.0"
+    implementation "com.journeyapps:zxing-android-embedded:4.1.0"
     //permissions
     implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
 
