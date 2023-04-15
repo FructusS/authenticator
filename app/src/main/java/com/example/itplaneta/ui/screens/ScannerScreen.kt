@@ -2,6 +2,7 @@ package com.example.itplaneta.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
 import androidx.compose.foundation.Image
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.ArrowBack
 import com.example.itplaneta.R
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -37,8 +39,9 @@ fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewMod
         permission = Manifest.permission.CAMERA
     )
     val context = LocalContext.current
+    var scanResult by rememberSaveable { mutableStateOf("") }
 
-    Column() {
+    Column {
         when (val status = cameraPermission.status) {
             is PermissionStatus.Denied -> {
                 AlertDialog(
@@ -74,11 +77,12 @@ fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewMod
             is PermissionStatus.Granted -> {
                 Scaffold(
                     topBar = {
-                        TopAppBar(backgroundColor = colorResource(id = R.color.bg_toolbar)) {
+                        TopAppBar(backgroundColor = MaterialTheme.colors.primaryVariant) {
                             IconButton(onClick = { navController.navigate(Screens.Main.route) }) {
                                 Icon(
                                     Icons.Default.Close,
-                                    contentDescription = stringResource(id = R.string.back)
+                                    contentDescription = stringResource(id = R.string.back),
+                                    tint = MaterialTheme.colors.secondary
                                 )
                             }
                         }
@@ -95,11 +99,15 @@ fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewMod
                                         ContextCompat.getMainExecutor(context),
                                         QrCodeAnalyzer(
                                             onSuccess = {
-                                                viewModel.parse(it.text)
-                                                navController.navigate(Screens.Main.route)
+                                                if (scanResult != it.text){
+                                                    viewModel.parse(it.text)
+                                                    navController.navigate(Screens.Main.route)
+                                                    scanResult = it.text
+                                                }
+
                                             },
                                             onFail = {
-
+                                                Log.i("123", "fail")
                                             }
                                         )
                                     )
