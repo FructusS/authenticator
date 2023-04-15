@@ -1,10 +1,14 @@
 package com.example.itplaneta.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -13,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -23,7 +26,9 @@ import androidx.navigation.NavController
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.viewmodels.AccountViewModel
+import com.example.itplaneta.otp.OtpType
 
+@OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AccountScreen(
@@ -42,8 +47,8 @@ fun AccountScreen(
 
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                backgroundColor = colorResource(id = R.color.bg_floatingbutton),
-                text = { Text(text = stringResource(id = R.string.save)) },
+                backgroundColor = MaterialTheme.colors.primary,
+                text = { Text(text = stringResource(id = R.string.save), color = Color.Black) },
                 onClick = {
                     if (accountId == null) {
                         if (viewModel.addAccount()) {
@@ -57,7 +62,9 @@ fun AccountScreen(
                 icon = {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_save),
-                        contentDescription = stringResource(id = R.string.save)
+                        contentDescription = stringResource(id = R.string.save),
+                        tint = Color.Black
+
                     )
                 })
         },
@@ -65,11 +72,13 @@ fun AccountScreen(
         modifier = Modifier
             .fillMaxSize(),
         topBar = {
-            TopAppBar(backgroundColor = colorResource(id = R.color.bg_toolbar)) {
+            TopAppBar(backgroundColor = MaterialTheme.colors.primaryVariant) {
                 IconButton(onClick = { navController.navigate(Screens.Main.route) }) {
                     Icon(
-                        Icons.Default.Close,
-                        contentDescription = stringResource(id = R.string.back)
+                        Icons.Default.ArrowBack,
+                        contentDescription = stringResource(id = R.string.back),
+                        tint = MaterialTheme.colors.secondary
+
                     )
                 }
                 Spacer(Modifier.weight(1f, true))
@@ -77,7 +86,8 @@ fun AccountScreen(
                 IconButton(onClick = { navController.navigate(Screens.QrScanner.route) }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_qr_code_scanner),
-                        contentDescription = "qrscanner"
+                        contentDescription = "qrscanner",
+                        tint = MaterialTheme.colors.secondary
                     )
                 }
             }
@@ -109,10 +119,10 @@ fun AccountScreen(
                     )
                 },
 
-                label = { Text(stringResource(id = R.string.issuer_account), color = Color.Black) },
+                label = { Text(stringResource(id = R.string.issuer_account), color = MaterialTheme.colors.secondary) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.Black,
-                    unfocusedBorderColor = Color.Black
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.secondary
                 )
             )
 
@@ -132,10 +142,10 @@ fun AccountScreen(
                         tint = Color.Black
                     )
                 },
-                label = { Text(stringResource(id = R.string.label_account), color = Color.Black) },
+                label = { Text(stringResource(id = R.string.label_account),color = MaterialTheme.colors.secondary) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = colorResource(id = R.color.border),
-                    unfocusedBorderColor = colorResource(id = R.color.border),
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.secondary,
                 )
             )
             if (viewModel.errorLabel) {
@@ -147,7 +157,7 @@ fun AccountScreen(
                 )
             }
 
-            if (accountId == null) {
+
                 OutlinedTextField(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -159,7 +169,7 @@ fun AccountScreen(
                                 painter = if (shownSecret) painterResource(id = R.drawable.ic_visibility) else painterResource(
                                     id = R.drawable.ic_visibility_off
                                 ),
-                                tint = Color.Black,
+                                tint = MaterialTheme.colors.secondary,
                                 contentDescription = null
                             )
                         }
@@ -176,10 +186,10 @@ fun AccountScreen(
                             tint = Color.Black
                         )
                     },
-                    label = { Text(stringResource(id = R.string.code), color = Color.Black) },
+                    label = { Text(stringResource(id = R.string.code), color = MaterialTheme.colors.secondary) },
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = colorResource(id = R.color.border),
-                        unfocusedBorderColor = colorResource(id = R.color.border),
+                        focusedBorderColor = MaterialTheme.colors.secondary,
+                        unfocusedBorderColor = MaterialTheme.colors.secondary,
                     )
                 )
                 if (viewModel.errorSecret) {
@@ -190,29 +200,105 @@ fun AccountScreen(
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 }
-                //  LengthCodeRadioButton()
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                verticalArrangement = Arrangement.spacedBy(15.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                OtpType(viewModel = viewModel)
-                OtpAlgorithm(viewModel = viewModel)
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                CountDigits(viewModel = viewModel)
-                OtpAlgorithm(viewModel = viewModel)
+                item {
+                    OtpType(viewModel = viewModel)
+                }
+                item {
+                    OtpAlgorithm(viewModel = viewModel)
+                }
+                item {
+                    CountDigits(viewModel = viewModel)
+
+                }
+                item {
+
+                        AnimatedContent(targetState = viewModel.otpType,
+                            transitionSpec = {
+                                slideInVertically { height -> height } + fadeIn() with
+                                        slideOutVertically { height -> -height } + fadeOut()
+                        }) {
+                            when(it){
+                                OtpType.Hotp -> {
+                                    OtpCounter(viewModel = viewModel)
+                                }
+                                OtpType.Totp ->{
+                                    OtpPeriod(viewModel = viewModel)
+                                }
+                            }
+                        }
+
+
+                }
             }
         }
     }
 }
 
 @Composable
+fun OtpPeriod(viewModel: AccountViewModel) {
+    Column {
+        OutlinedTextField(
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.wrapContentWidth(),
+            value = viewModel.period,
+            onValueChange = {
+                viewModel.updatePeriod(it)
+            },
+
+            maxLines = 1,
+            isError = viewModel.errorPeriod,
+            label = {
+                Text(
+                    stringResource(id = R.string.period_otp_code),
+                    color = MaterialTheme.colors.secondary
+                )
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colors.secondary,
+                unfocusedBorderColor = MaterialTheme.colors.secondary,
+            )
+        )
+    }
+}
+
+@Composable
+fun OtpCounter(viewModel: AccountViewModel) {
+    Column {
+        OutlinedTextField(
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.wrapContentWidth(),
+            value = viewModel.counter,
+            onValueChange = {
+                viewModel.updateCounter(it)
+            },
+
+            maxLines = 1,
+            isError = viewModel.errorCounter,
+            label = {
+                Text(
+                    stringResource(id = R.string.counter_otp_code),
+                    color = MaterialTheme.colors.secondary
+                )
+            },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colors.secondary,
+                unfocusedBorderColor = MaterialTheme.colors.secondary,
+            )
+        )
+    }
+}
+
+@Composable
 fun CountDigits(viewModel: AccountViewModel) {
-    Column() {
+    Column {
         OutlinedTextField(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
@@ -223,18 +309,25 @@ fun CountDigits(viewModel: AccountViewModel) {
             },
 
             maxLines = 1,
-            isError = viewModel.errorLabel,
+            isError = viewModel.errorDigits,
             label = {
                 Text(
-                    stringResource(id = R.string.digits),
-                    color = if (viewModel.errorDigits) Color.Red else Color.Black
+                    stringResource(id = R.string.length_otp_code),
+                    color  = MaterialTheme.colors.secondary
                 )
             },
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = colorResource(id = R.color.border),
-                unfocusedBorderColor = colorResource(id = R.color.border),
+                focusedBorderColor =  MaterialTheme.colors.secondary,
+                unfocusedBorderColor =   MaterialTheme.colors.secondary,
             )
         )
+        if (viewModel.errorDigits) {
+            Text(
+                text = stringResource(id = R.string.length_code_from_6_to_10),
+                color = MaterialTheme.colors.error,
+                style = MaterialTheme.typography.caption
+            )
+        }
     }
 
 }
@@ -255,12 +348,15 @@ fun OtpType(viewModel: AccountViewModel) {
         ) {
             OutlinedTextField(
                 readOnly = true,
-                value = viewModel.otpType.name.uppercase(),
+                value = when(viewModel.otpType){
+                    OtpType.Totp -> stringResource(id = R.string.otp_type_by_time)
+                    OtpType.Hotp -> stringResource(id = R.string.otp_type_by_counter)
+                },
                 onValueChange = { },
                 label = {
                     Text(
-                        text = stringResource(id = R.string.otpalgorithm),
-                        color = Color.Black
+                        text = stringResource(id = R.string.otp_algorithm),
+                        color = MaterialTheme.colors.secondary
                     )
                 },
                 trailingIcon = {
@@ -269,8 +365,8 @@ fun OtpType(viewModel: AccountViewModel) {
                     )
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = colorResource(id = R.color.border),
-                    unfocusedBorderColor = colorResource(id = R.color.border),
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.secondary,
                 )
             )
             ExposedDropdownMenu(
@@ -286,7 +382,12 @@ fun OtpType(viewModel: AccountViewModel) {
                             expanded = false
                         }
                     ) {
-                        Text(text = otpType.name.uppercase())
+                        if (otpType == OtpType.Totp){
+                            Text(text = stringResource(id = R.string.otp_type_by_time),color = MaterialTheme.colors.secondary)
+                        }
+                        if (otpType == OtpType.Hotp){
+                            Text(text = stringResource(id = R.string.otp_type_by_counter), color = MaterialTheme.colors.secondary)
+                        }
                     }
                 }
             }
@@ -315,8 +416,8 @@ fun OtpAlgorithm(viewModel: AccountViewModel) {
                 onValueChange = { },
                 label = {
                     Text(
-                        text = stringResource(id = R.string.otptype),
-                        color = Color.Black
+                        text = stringResource(id = R.string.otp_type),
+                        color = MaterialTheme.colors.secondary
                     )
                 },
                 trailingIcon = {
@@ -324,7 +425,11 @@ fun OtpAlgorithm(viewModel: AccountViewModel) {
                         expanded = expanded
                     )
                 },
-                colors = ExposedDropdownMenuDefaults.textFieldColors()
+
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.secondary,
+                )
             )
             ExposedDropdownMenu(
                 expanded = expanded,
