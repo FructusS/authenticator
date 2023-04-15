@@ -22,9 +22,9 @@ class MainViewModel @Inject constructor(
 
     private val secretBytes = mutableMapOf<String, ByteArray>()
     val accounts = accountRepository.getAccounts()
-    val codes = mutableStateMapOf<Long, String>()
-    val timerProgresses = mutableStateMapOf<Long, Float>()
-    val timerValues = mutableStateMapOf<Long, Long>()
+    val codes = mutableStateMapOf<Int, String>()
+    val timerProgresses = mutableStateMapOf<Int, Float>()
+    val timerValues = mutableStateMapOf<Int, Long>()
 
     init {
         viewModelScope.launch {
@@ -90,6 +90,12 @@ class MainViewModel @Inject constructor(
 
     override fun onCleared() {
         totpTimer.cancel()
+    }
+
+    fun incrementHotpCounter(id: Int) {
+        viewModelScope.launch {
+            accountRepository.incrementHotpCounter(id)
+        }
     }
 
 }
