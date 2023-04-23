@@ -1,4 +1,4 @@
-package com.example.itplaneta.ui.screens
+package com.example.itplaneta.ui.screens.account
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
@@ -9,12 +9,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -24,9 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.itplaneta.R
-import com.example.itplaneta.ui.navigation.Screens
-import com.example.itplaneta.ui.viewmodels.AccountViewModel
 import com.example.itplaneta.otp.OtpType
+import com.example.itplaneta.ui.navigation.Screens
 
 @OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -41,6 +38,7 @@ fun AccountScreen(
         if (accountId != null) {
             viewModel.updateAccountField(accountId)
         }
+
     }
 
     Scaffold(
@@ -73,7 +71,13 @@ fun AccountScreen(
             .fillMaxSize(),
         topBar = {
             TopAppBar(backgroundColor = MaterialTheme.colors.primaryVariant) {
-                IconButton(onClick = { navController.navigate(Screens.Main.route) }) {
+                IconButton(onClick = {
+                    navController.navigate(Screens.Main.route) {
+                        popUpTo(Screens.Main.route) {
+                            inclusive = true
+                        }
+                    }
+                }) {
                     Icon(
                         Icons.Default.ArrowBack,
                         contentDescription = stringResource(id = R.string.back),
@@ -119,7 +123,12 @@ fun AccountScreen(
                     )
                 },
 
-                label = { Text(stringResource(id = R.string.issuer_account), color = MaterialTheme.colors.secondary) },
+                label = {
+                    Text(
+                        stringResource(id = R.string.issuer_account),
+                        color = MaterialTheme.colors.secondary
+                    )
+                },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = MaterialTheme.colors.secondary,
                     unfocusedBorderColor = MaterialTheme.colors.secondary
@@ -142,7 +151,12 @@ fun AccountScreen(
                         tint = Color.Black
                     )
                 },
-                label = { Text(stringResource(id = R.string.label_account),color = MaterialTheme.colors.secondary) },
+                label = {
+                    Text(
+                        stringResource(id = R.string.label_account),
+                        color = MaterialTheme.colors.secondary
+                    )
+                },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = MaterialTheme.colors.secondary,
                     unfocusedBorderColor = MaterialTheme.colors.secondary,
@@ -158,48 +172,53 @@ fun AccountScreen(
             }
 
 
-                OutlinedTextField(
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    value = viewModel.secret,
-                    maxLines = 1,
-                    trailingIcon = {
-                        IconButton(onClick = { shownSecret = !shownSecret }) {
-                            Icon(
-                                painter = if (shownSecret) painterResource(id = R.drawable.ic_visibility) else painterResource(
-                                    id = R.drawable.ic_visibility_off
-                                ),
-                                tint = MaterialTheme.colors.secondary,
-                                contentDescription = null
-                            )
-                        }
-                    },
-                    visualTransformation = if (shownSecret) VisualTransformation.None else PasswordVisualTransformation(),
-                    onValueChange = {
-                        viewModel.updateSecret(it)
-                    },
-                    isError = viewModel.errorSecret,
-                    leadingIcon = {
+            OutlinedTextField(
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.secret,
+                maxLines = 1,
+                trailingIcon = {
+                    IconButton(onClick = { shownSecret = !shownSecret }) {
                         Icon(
-                            painterResource(id = R.drawable.ic_secret),
-                            contentDescription = stringResource(id = R.string.secret),
-                            tint = Color.Black
+                            painter = if (shownSecret) painterResource(id = R.drawable.ic_visibility) else painterResource(
+                                id = R.drawable.ic_visibility_off
+                            ),
+                            tint = MaterialTheme.colors.secondary,
+                            contentDescription = null
                         )
-                    },
-                    label = { Text(stringResource(id = R.string.code), color = MaterialTheme.colors.secondary) },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = MaterialTheme.colors.secondary,
-                        unfocusedBorderColor = MaterialTheme.colors.secondary,
+                    }
+                },
+                visualTransformation = if (shownSecret) VisualTransformation.None else PasswordVisualTransformation(),
+                onValueChange = {
+                    viewModel.updateSecret(it)
+                },
+                isError = viewModel.errorSecret,
+                leadingIcon = {
+                    Icon(
+                        painterResource(id = R.drawable.ic_secret),
+                        contentDescription = stringResource(id = R.string.secret),
+                        tint = Color.Black
                     )
-                )
-                if (viewModel.errorSecret) {
+                },
+                label = {
                     Text(
-                        text = viewModel.errorSecretText,
-                        color = MaterialTheme.colors.error,
-                        style = MaterialTheme.typography.caption,
-                        modifier = Modifier.padding(start = 16.dp)
+                        stringResource(id = R.string.code),
+                        color = MaterialTheme.colors.secondary
                     )
-                }
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = MaterialTheme.colors.secondary,
+                    unfocusedBorderColor = MaterialTheme.colors.secondary,
+                )
+            )
+            if (viewModel.errorSecret) {
+                Text(
+                    text = viewModel.errorSecretText,
+                    color = MaterialTheme.colors.error,
+                    style = MaterialTheme.typography.caption,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -218,20 +237,20 @@ fun AccountScreen(
                 }
                 item {
 
-                        AnimatedContent(targetState = viewModel.otpType,
-                            transitionSpec = {
-                                slideInVertically { height -> height } + fadeIn() with
-                                        slideOutVertically { height -> -height } + fadeOut()
+                    AnimatedContent(targetState = viewModel.otpType,
+                        transitionSpec = {
+                            slideInVertically { height -> height } + fadeIn() with
+                                    slideOutVertically { height -> -height } + fadeOut()
                         }) {
-                            when(it){
-                                OtpType.Hotp -> {
-                                    OtpCounter(viewModel = viewModel)
-                                }
-                                OtpType.Totp ->{
-                                    OtpPeriod(viewModel = viewModel)
-                                }
+                        when (it) {
+                            OtpType.Hotp -> {
+                                OtpCounter(viewModel = viewModel)
+                            }
+                            OtpType.Totp -> {
+                                OtpPeriod(viewModel = viewModel)
                             }
                         }
+                    }
 
 
                 }
@@ -313,12 +332,12 @@ fun CountDigits(viewModel: AccountViewModel) {
             label = {
                 Text(
                     stringResource(id = R.string.length_otp_code),
-                    color  = MaterialTheme.colors.secondary
+                    color = MaterialTheme.colors.secondary
                 )
             },
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor =  MaterialTheme.colors.secondary,
-                unfocusedBorderColor =   MaterialTheme.colors.secondary,
+                focusedBorderColor = MaterialTheme.colors.secondary,
+                unfocusedBorderColor = MaterialTheme.colors.secondary,
             )
         )
         if (viewModel.errorDigits) {
@@ -348,7 +367,7 @@ fun OtpType(viewModel: AccountViewModel) {
         ) {
             OutlinedTextField(
                 readOnly = true,
-                value = when(viewModel.otpType){
+                value = when (viewModel.otpType) {
                     OtpType.Totp -> stringResource(id = R.string.otp_type_by_time)
                     OtpType.Hotp -> stringResource(id = R.string.otp_type_by_counter)
                 },
@@ -382,11 +401,17 @@ fun OtpType(viewModel: AccountViewModel) {
                             expanded = false
                         }
                     ) {
-                        if (otpType == OtpType.Totp){
-                            Text(text = stringResource(id = R.string.otp_type_by_time),color = MaterialTheme.colors.secondary)
+                        if (otpType == OtpType.Totp) {
+                            Text(
+                                text = stringResource(id = R.string.otp_type_by_time),
+                                color = MaterialTheme.colors.secondary
+                            )
                         }
-                        if (otpType == OtpType.Hotp){
-                            Text(text = stringResource(id = R.string.otp_type_by_counter), color = MaterialTheme.colors.secondary)
+                        if (otpType == OtpType.Hotp) {
+                            Text(
+                                text = stringResource(id = R.string.otp_type_by_counter),
+                                color = MaterialTheme.colors.secondary
+                            )
                         }
                     }
                 }

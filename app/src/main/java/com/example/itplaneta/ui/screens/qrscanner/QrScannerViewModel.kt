@@ -1,4 +1,4 @@
-package com.example.itplaneta.ui.viewmodels
+package com.example.itplaneta.ui.screens.qrscanner
 
 import androidx.lifecycle.ViewModel
 import com.example.itplaneta.data.database.AccountRepository

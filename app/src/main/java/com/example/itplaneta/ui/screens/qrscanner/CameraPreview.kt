@@ -1,4 +1,4 @@
-package com.example.itplaneta.ui.screens
+package com.example.itplaneta.ui.screens.qrscanner
 
 import android.content.Context
 import android.view.ViewGroup

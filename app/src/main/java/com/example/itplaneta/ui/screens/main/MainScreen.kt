@@ -1,6 +1,5 @@
-package com.example.itplaneta.ui.screens
+package com.example.itplaneta.ui.screens.main
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -8,23 +7,25 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -32,23 +33,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import com.example.itplaneta.ui.viewmodels.MainViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.otp.OtpType
 import com.example.itplaneta.ui.navigation.Screens
 
 
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     navController: NavController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
+    var isSettingButtonClick by remember {
+        mutableStateOf(false)
+    }
+    var isSettingsMenuExpanded by remember {
+        mutableStateOf(false)
+    }
+    val iconSettingsRotation by animateFloatAsState(if (isSettingButtonClick) 45f else 0f,)
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     Scaffold(
+        topBar = {
+            androidx.compose.material.TopAppBar(backgroundColor = colors.primaryVariant) {
+                androidx.compose.material.IconButton(onClick = {
+
+                    isSettingButtonClick = !isSettingButtonClick
+                    navController.navigate(Screens.Settings.route)
+                }) {
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(id = R.string.settings), modifier = Modifier.rotate(iconSettingsRotation))
+                }
+            }
+        },
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             Column {

@@ -1,32 +1,26 @@
-package com.example.itplaneta.ui.screens
+package com.example.itplaneta.ui.screens.qrscanner
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.ArrowBack
-import com.example.itplaneta.R
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.itplaneta.R
 import com.example.itplaneta.camera.QrCodeAnalyzer
 import com.example.itplaneta.ui.navigation.Screens
-import com.example.itplaneta.ui.viewmodels.QrScannerViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -34,7 +28,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewModel = hiltViewModel()) {
+fun ScannerScreen(
+    navController: NavHostController,
+    viewModel: QrScannerViewModel = hiltViewModel()
+) {
     val cameraPermission = rememberPermissionState(
         permission = Manifest.permission.CAMERA
     )
@@ -55,7 +52,7 @@ fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewMod
                         }
                     },
                     buttons = {
-                        Row(modifier = Modifier.padding(8.dp)){
+                        Row(modifier = Modifier.padding(8.dp)) {
 
                             TextButton(onClick = { navController.popBackStack() })
                             {
@@ -78,7 +75,13 @@ fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewMod
                 Scaffold(
                     topBar = {
                         TopAppBar(backgroundColor = MaterialTheme.colors.primaryVariant) {
-                            IconButton(onClick = { navController.navigate(Screens.Main.route) }) {
+                            IconButton(onClick = {
+                                navController.navigate(Screens.AddAccount.route) {
+                                    popUpTo(Screens.AddAccount.route) {
+                                        inclusive = true
+                                    }
+                                }
+                            }) {
                                 Icon(
                                     Icons.Default.Close,
                                     contentDescription = stringResource(id = R.string.back),
@@ -99,7 +102,7 @@ fun ScannerScreen(navController: NavHostController, viewModel : QrScannerViewMod
                                         ContextCompat.getMainExecutor(context),
                                         QrCodeAnalyzer(
                                             onSuccess = {
-                                                if (scanResult != it.text){
+                                                if (scanResult != it.text) {
                                                     viewModel.parse(it.text)
                                                     navController.navigate(Screens.Main.route)
                                                     scanResult = it.text

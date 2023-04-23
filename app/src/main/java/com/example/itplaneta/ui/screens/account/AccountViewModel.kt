@@ -1,4 +1,4 @@
-package com.example.itplaneta.ui.viewmodels
+package com.example.itplaneta.ui.screens.account
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

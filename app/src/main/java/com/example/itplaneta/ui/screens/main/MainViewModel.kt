@@ -1,4 +1,4 @@
-package com.example.itplaneta.ui.viewmodels
+package com.example.itplaneta.ui.screens.main
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
@@ -97,5 +97,6 @@ class MainViewModel @Inject constructor(
             accountRepository.incrementHotpCounter(id)
         }
     }
+
 
 }
