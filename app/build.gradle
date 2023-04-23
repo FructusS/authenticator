@@ -50,6 +50,10 @@ android {
 }
 
 dependencies {
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
+    implementation 'androidx.datastore:datastore-preferences-rxjava2:1.0.0'
+    implementation 'androidx.datastore:datastore-preferences-rxjava3:1.0.0'
+
     //base32
     implementation "commons-codec:commons-codec:$commons_codec_version"
     implementation "androidx.compose.material3:material3:$material3_version"
