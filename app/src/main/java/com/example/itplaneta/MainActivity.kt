@@ -6,10 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -17,6 +19,8 @@ import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.screens.account.AccountScreen
 import com.example.itplaneta.ui.screens.main.MainScreen
 import com.example.itplaneta.ui.screens.qrscanner.ScannerScreen
+import com.example.itplaneta.ui.screens.settings.AppTheme
+import com.example.itplaneta.ui.screens.settings.SettingsManager
 import com.example.itplaneta.ui.screens.settings.SettingsScreen
 import com.example.itplaneta.ui.theme.AuthenticatorTheme
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -31,7 +35,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AuthenticatorTheme {
+            val settingsManager = SettingsManager(LocalContext.current)
+            val theme = settingsManager.getTheme.collectAsState(initial = AppTheme.Auto)
+            AuthenticatorTheme(
+                darkTheme = when (theme.value) {
+                    AppTheme.Light -> false
+                    AppTheme.Dark -> true
+                    AppTheme.Auto -> isSystemInDarkTheme()
+                }
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
