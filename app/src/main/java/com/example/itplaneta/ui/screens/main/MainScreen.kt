@@ -48,9 +48,6 @@ fun MainScreen(
     var isSettingButtonClick by remember {
         mutableStateOf(false)
     }
-    var isSettingsMenuExpanded by remember {
-        mutableStateOf(false)
-    }
     val iconSettingsRotation by animateFloatAsState(if (isSettingButtonClick) 45f else 0f,)
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
