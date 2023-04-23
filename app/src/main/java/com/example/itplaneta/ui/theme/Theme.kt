@@ -38,7 +38,8 @@ private val LightColorPalette = lightColors(
 )
 
 @Composable
-fun AuthenticatorTheme(darkTheme: Boolean = isSystemInDarkTheme() , content: @Composable () -> Unit) {
+fun AuthenticatorTheme(darkTheme: Boolean , content: @Composable () -> Unit) {
+
     val colors = if (darkTheme) {
         DarkColorPalette
     } else {
