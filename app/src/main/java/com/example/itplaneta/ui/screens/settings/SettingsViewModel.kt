@@ -13,7 +13,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(private val settingsManager: SettingsManager) : ViewModel() {
 
     private val _themeState = MutableStateFlow(settingsManager.getTheme)
-    val themeState = _themeState.asStateFlow()
+    val themeState = _themeState.asStateFlow().value
     fun saveTheme(theme: AppTheme){
         viewModelScope.launch {
             settingsManager.saveTheme(theme)
