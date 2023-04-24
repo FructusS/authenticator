@@ -53,7 +53,7 @@ fun MainScreen(
     val context = LocalContext.current
     Scaffold(
         topBar = {
-            androidx.compose.material.TopAppBar(backgroundColor = colors.primaryVariant) {
+            androidx.compose.material.TopAppBar(backgroundColor = colors.primary) {
                 androidx.compose.material.IconButton(onClick = {
 
                     isSettingButtonClick = !isSettingButtonClick
@@ -68,7 +68,6 @@ fun MainScreen(
             Column {
 
                 FloatingActionButton(
-                    backgroundColor = colors.primary,
                     onClick =  {
                         navController.navigate(Screens.AddAccount.route)
                     } ,
@@ -103,9 +102,9 @@ fun MainScreen(
                         Toast.makeText(context, context.getText(R.string.copied), Toast.LENGTH_SHORT).show()
                     },
                     issuer = if (account.issuer != "") { ->
-                        Text(account.issuer.toString(), maxLines = 1, fontSize = 25.sp, color = colors.secondaryVariant)
+                        Text(account.issuer.toString(), maxLines = 1, fontSize = 25.sp, color = colors.onSurface)
                     } else null,
-                    label = { Text(account.label, maxLines = 1, fontSize = 25.sp, color = colors.secondaryVariant)},
+                    label = { Text(account.label, maxLines = 1, fontSize = 25.sp, color = colors.onSurface)},
 
                     indicator = {
                         if (OtpType.Totp == account.tokenType) {
@@ -120,16 +119,16 @@ fun MainScreen(
                                         targetValue = timerProgress,
                                         animationSpec = tween(durationMillis = 500)
                                     )
-                                    CircularProgressIndicator(progress = animatedTimerProgress,color = if (timerValue!! <= 10) colors.error else colors.surface)
+                                    CircularProgressIndicator(progress = animatedTimerProgress,color = if (timerValue!! <= 10) colors.error else colors.onPrimary)
                                 }
                                 if (timerValue != null) {
-                                    Text(timerValue.toString(), color = colors.secondaryVariant)
+                                    Text(timerValue.toString(), color = colors.onSurface)
                                 }
                             }
                         }
                         if (OtpType.Hotp == account.tokenType) {
                             OutlinedButton(onClick = { viewModel.incrementHotpCounter(account.id)}) {
-                                Text(account.counter.toString(), color = colors.secondaryVariant)
+                                Text(account.counter.toString(), color = colors.onSurface)
                             }
                         }
                     },
@@ -149,7 +148,7 @@ fun MainScreen(
                         ) { animatedCode ->
                             if (animatedCode != null) {
 
-                                    Text(animatedCode, color = colors.secondaryVariant)
+                                    Text(animatedCode, color = colors.onSurface)
 
                             }
                         }
@@ -215,8 +214,7 @@ private fun Account(
                 IconButton(onClick = copyClick) {
                     Icon(
                         painterResource(id = R.drawable.ic_content_copy),
-                        contentDescription = "copy",
-                        tint = colors.secondaryVariant
+                        contentDescription = "copy"
                     )
                 }
             }
@@ -238,14 +236,13 @@ private fun Account(
                         }
                         Spacer(Modifier.weight(1f))
                         IconButton(onClick = deleteClick) {
-                            Icon(Icons.Default.Delete, contentDescription = "delete", tint = colors.secondaryVariant)
+                            Icon(Icons.Default.Delete, contentDescription = "delete")
                         }
 
                         IconButton(onClick = editClick) {
                             Icon(
                                 painterResource(id = R.drawable.ic_edit),
-                                contentDescription = "edit",
-                                tint = colors.secondaryVariant
+                                contentDescription = "edit"
                             )
                         }
                     }
@@ -257,6 +254,6 @@ private fun Account(
     Divider(modifier = Modifier
         .height(1.dp)
         .fillMaxWidth(),
-        color = colors.secondary)
+)
 
 }
