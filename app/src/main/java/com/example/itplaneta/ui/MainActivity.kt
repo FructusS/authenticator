@@ -1,4 +1,4 @@
-package com.example.itplaneta
+package com.example.itplaneta.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,11 +12,13 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.screens.account.AccountScreen
+import com.example.itplaneta.ui.screens.howitworks.HowItWorksScreen
 import com.example.itplaneta.ui.screens.main.MainScreen
 import com.example.itplaneta.ui.screens.qrscanner.ScannerScreen
 import com.example.itplaneta.ui.screens.settings.AppTheme
@@ -27,7 +29,6 @@ import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -100,6 +101,7 @@ class MainActivity : ComponentActivity() {
                                 AnimatedContentScope.SlideDirection.Left,
                                 animationSpec = tween(350)
                             )
+
                         Screens.Settings.route ->
                             slideOutOfContainer(
                                 AnimatedContentScope.SlideDirection.Right,
@@ -146,7 +148,14 @@ class MainActivity : ComponentActivity() {
             composable(route = Screens.Settings.route) {
                 SettingsScreen(navController)
             }
+            composable(route = Screens.HowItWorks.route) {
+                HowItWorksScreen(navController)
+            }
         }
     }
 }
+//fun NavController.navigate(route: String){
+//    popBackStack(route = route, inclusive = true)
+//
+//}
 
