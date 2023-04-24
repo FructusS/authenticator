@@ -23,13 +23,14 @@
     <string name="otp_type_by_counter">По счетчику</string>
     <string name="copied">Скопировано!</string>
     <string name="settings">Настройки</string>
-    <string name="how_it_works">How it works?</string>
+    <string name="how_it_works">Как это работает?</string>
     <string name="save_accounts">Сохранить аккаунты</string>
     <string name="load_accounts">Восстановить аккаунты</string>
     <string name="theme">Тема</string>
     <string name="theme_auto">Системная</string>
     <string name="theme_dark">Темная</string>
     <string name="theme_light">Светлая</string>
+    <string name="main_settings">Основные</string>
     <string-array name="theme_app">
         <item>Темная тема</item>
         <item>Светлая тема</item>

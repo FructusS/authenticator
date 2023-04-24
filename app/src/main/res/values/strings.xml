@@ -29,6 +29,7 @@
     <string name="theme_auto">Auto</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
+    <string name="main_settings">Main</string>
     <string-array name="theme_app">
         <item>Dark mode</item>
         <item>Light mode</item>
