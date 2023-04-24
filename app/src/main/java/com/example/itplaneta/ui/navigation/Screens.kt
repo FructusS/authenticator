@@ -1,6 +1,8 @@
 package com.example.itplaneta.ui.navigation
 
 sealed class Screens(val route  : String){
+
+    object HowItWorks : Screens("how_it_works")
     object Main : Screens("main_screen")
     object AddAccount : Screens("account_screen")
     object Settings : Screens("settings_screen")
