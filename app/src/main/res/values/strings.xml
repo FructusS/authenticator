@@ -25,6 +25,10 @@
     <string name="how_it_works">How it works?</string>
     <string name="save_accounts">Save accounts</string>
     <string name="load_accounts">Restore accounts</string>
+    <string name="theme">Theme</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
     <string-array name="theme_app">
         <item>Dark mode</item>
         <item>Light mode</item>
