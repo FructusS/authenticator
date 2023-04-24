@@ -21,6 +21,7 @@ import androidx.navigation.NavHostController
 import com.example.itplaneta.R
 import com.example.itplaneta.camera.QrCodeAnalyzer
 import com.example.itplaneta.ui.navigation.Screens
+import com.example.itplaneta.ui.screens.component.TopBar
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -74,21 +75,7 @@ fun ScannerScreen(
             is PermissionStatus.Granted -> {
                 Scaffold(
                     topBar = {
-                        TopAppBar(backgroundColor = MaterialTheme.colors.primaryVariant) {
-                            IconButton(onClick = {
-                                navController.navigate(Screens.AddAccount.route) {
-                                    popUpTo(Screens.AddAccount.route) {
-                                        inclusive = true
-                                    }
-                                }
-                            }) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(id = R.string.back),
-                                    tint = MaterialTheme.colors.secondary
-                                )
-                            }
-                        }
+                        TopBar(navController = navController)
                     }
                 ) {
                     CameraPreview(
