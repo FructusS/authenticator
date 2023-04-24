@@ -16,17 +16,26 @@ private val DarkColorPalette = darkColors(
     error = errorDarkMode,
     secondaryVariant = secondaryVariantDarkMode,
     surface = surfaceDarkMode,
+    onPrimary = onPrimaryDarkMode,
+    onSecondary = onSecondaryDarkMode,
+    onBackground = onBackgroundDarkMode,
+    onSurface = onSurfaceDarkMode,
+    onError = onErrorDarkMode,
 )
 
 private val LightColorPalette = lightColors(
     primary = primaryLightMode,
-    primaryVariant = primaryVariantMode,
+    primaryVariant = primaryVariantLightMode,
     secondary = secondaryLightMode,
     background = backgroundLightMode,
     error = errorLightMode,
     secondaryVariant = secondaryVariantLightMode,
     surface = surfaceLightMode,
-
+    onPrimary = onPrimaryLightMode,
+    onSecondary = onSecondaryLightMode,
+    onBackground = onBackgroundLightMode,
+    onSurface = onSurfaceLightMode,
+    onError = onErrorLightMode,
     /* Other default colors to override
     background = Color.White,
     surface = Color.White,
