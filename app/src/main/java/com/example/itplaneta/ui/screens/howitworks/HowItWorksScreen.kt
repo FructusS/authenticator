@@ -2,23 +2,28 @@ package com.example.itplaneta.ui.screens.howitworks
 
 import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.navigation.Screens
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
 
@@ -28,54 +33,79 @@ import kotlinx.coroutines.launch
 fun HowItWorksScreen(navController: NavHostController) {
     val pagerState = rememberPagerState()
     val items = createItems()
-    Scaffold() {
-        Column() {
-            HorizontalPager(
-                modifier = Modifier.padding(it),
-                count = items.size,
-                state = pagerState
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        HorizontalPager(
+            count = items.size,
+            state = pagerState,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column() {
-                    Image(painter = painterResource(id = items[it].image), contentDescription = "image")
-                    Text(text = items[it].description)
-                }
-
+                Image(
+                    painter = painterResource(id = items[it].image),
+                    alignment = Alignment.Center,
+                    contentDescription = "image"
+                )
+                Text(
+                    text = stringResource(id = items[it].description),
+                    textAlign = TextAlign.Center
+                )
             }
-            val coroutineScope = rememberCoroutineScope()
-            Button(onClick = {
-                if (pagerState.currentPage == items.size - 1) {
-                    navController.navigate(Screens.Settings.route) {
-                        popUpTo(Screens.Settings.route) {
-                            inclusive = true
-                        }
-                    }
-                } else {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(page = pagerState.currentPage + 1)
+
+        }
+        HorizontalPagerIndicator(
+            pagerState = pagerState,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(16.dp),
+        )
+        val coroutineScope = rememberCoroutineScope()
+        Button(onClick = {
+            if (pagerState.currentPage == items.size - 1) {
+                navController.navigate(Screens.Settings.route) {
+                    popUpTo(Screens.Settings.route) {
+                        inclusive = true
                     }
                 }
-
-            }) {
-
-                if (pagerState.currentPage == items.size - 1) {
-                    Text(text = "vihod")
-
-                } else {
-                    Text(text = "dalee")
+            } else {
+                coroutineScope.launch {
+                    pagerState.animateScrollToPage(page = pagerState.currentPage + 1)
                 }
+            }
+
+        }) {
+
+            if (pagerState.currentPage == items.size - 1) {
+                Text(text = stringResource(id = R.string.exit))
+            } else {
+                Text(text = stringResource(id = R.string.continue_))
             }
         }
     }
 }
 
+
 data class HorizontalPagerContent(
-    val description: String,
+    @StringRes
+    val description: Int,
     @DrawableRes
-    val image : Int
+    val image: Int
 )
 
 fun createItems() = listOf(
-
-    HorizontalPagerContent(description = "Description1", image = R.drawable.ic_qr_scanner_phone),
-
+    HorizontalPagerContent(
+        description = R.string.first_pager,
+        image = R.drawable. ic_qr_scanner_phone
+    ),
+    HorizontalPagerContent(
+        description = R.string.second_pager,
+        image = R.drawable.ic_correct_otp_code
+    )
 )
