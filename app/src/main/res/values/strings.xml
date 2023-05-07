@@ -30,6 +30,10 @@
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
     <string name="main_settings">Main</string>
+    <string name="exit">Exit</string>
+    <string name="continue_">Continue</string>
+    <string name="first_pager">To add an account, scan the QR code or write the data manually from the online service</string>
+    <string name="second_pager">Next, the generated code must be confirmed in the online service. Don\'t forget to keep the backup codes provided.</string>
     <string-array name="theme_app">
         <item>Dark mode</item>
         <item>Light mode</item>

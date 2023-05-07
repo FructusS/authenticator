@@ -31,6 +31,10 @@
     <string name="theme_dark">Темная</string>
     <string name="theme_light">Светлая</string>
     <string name="main_settings">Основные</string>
+    <string name="exit">Выход</string>
+    <string name="continue_">Далее</string>
+    <string name="first_pager">Для того,чтобы добавить аккаунт отсканируйте qr-код или запишите данные вручную из онлайн-сервиса</string>
+    <string name="second_pager">Далее сгенерированный код необходимо подтвердить в онлайн-сервисе. Не забудьте сохранить резервные коды предоставленные онлайн-сервисом</string>
     <string-array name="theme_app">
         <item>Темная тема</item>
         <item>Светлая тема</item>
