@@ -6,9 +6,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.itplaneta.otp.OtpAlgorithm
 import com.example.itplaneta.otp.OtpType
-import kotlinx.android.parcel.Parcelize
 
-@Parcelize
 @Entity(tableName = "accounts")
 data class Account (
 
@@ -32,4 +30,4 @@ data class Account (
     @ColumnInfo(name = "period", defaultValue = "30")
     val period: Int
 
-) : Parcelable
+)
