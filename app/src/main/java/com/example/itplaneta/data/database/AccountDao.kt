@@ -15,9 +15,6 @@ interface AccountDao {
     @Query("SELECT * FROM accounts")
     fun getAll(): Flow<List<Account>>
 
-    @Query("SELECT * FROM accounts")
-    fun getAllLV(): LiveData<List<Account>>
-
     @Update
     suspend fun updateAccount(account: Account)
 

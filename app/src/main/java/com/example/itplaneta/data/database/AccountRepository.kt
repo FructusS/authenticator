@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 
 class AccountRepository @Inject constructor(private val accountDao: AccountDao) {
-    val accountList: Flow<List<Account>> = accountDao.getAll()
+    private val accountList: Flow<List<Account>> = accountDao.getAll()
 
     fun addAccount(newAccount : Account) = runBlocking{
         this.launch(Dispatchers.IO)  {
@@ -41,4 +41,6 @@ class AccountRepository @Inject constructor(private val accountDao: AccountDao) 
         updateAccount( account.copy(counter = account.counter + 1))
     }
 
+
+    fun getAllAccounts() = accountDao.getAllAccounts()
 }
