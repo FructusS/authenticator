@@ -49,6 +49,17 @@ android {
 }
 
 dependencies {
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation("androidx.security:security-crypto:1.0.0")
+
+    // For Identity Credential APIs
+    implementation("androidx.security:security-identity-credential:1.0.0-alpha03")
+
+    // For App Authentication APIs
+    implementation("androidx.security:security-app-authenticator:1.0.0-alpha02")
+
+    // For App Authentication API testing
+    androidTestImplementation("androidx.security:security-app-authenticator:1.0.0-alpha01")
 
     implementation "androidx.compose.foundation:foundation:1.4.2"
 
@@ -72,6 +83,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.44")
     implementation 'androidx.biometric:biometric-ktx:1.2.0-alpha05'
     implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha03'
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     //room
     implementation "androidx.room:room-runtime:$room_version"
