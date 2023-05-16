@@ -1,6 +1,10 @@
 package com.example.itplaneta.ui.screens.settings
 
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -9,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,18 +22,38 @@ import androidx.navigation.NavHostController
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.navigation.Screens
 import com.example.itplaneta.ui.screens.component.TopBar
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SettingsScreen(
     navController: NavHostController, viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
+    val backupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+        onResult = {
+            if (it != null) {
+                viewModel.saveBackupToExternal(it)
+            }
+        }
+    )
+    val restoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = {
+            if (it != null) {
+                viewModel.restoreBackupFromExternal(it)
+            }
+        }
+    )
     Scaffold(topBar = {
         TopBar(navController = navController)
-    }
-
-    ) {
+    }) {
         Column(
             Modifier
                 .fillMaxSize()
@@ -43,18 +68,21 @@ fun SettingsScreen(
                 )
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { navController.navigate(Screens.HowItWorks.route)}) {
+                    .clickable { navController.navigate(Screens.HowItWorks.route) }) {
                     Text(
                         text = stringResource(id = R.string.how_it_works),
                         modifier = Modifier.padding(0.dp, 10.dp)
-
                     )
                 }
 
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }) {
+                    .clickable {
+                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm")
+                        val current = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(formatter)
+                       backupLauncher.launch("backupAuth-${current}")
+                    }) {
                     Text(
                         text = stringResource(id = R.string.save_accounts),
                         modifier = Modifier.padding(0.dp, 10.dp)
@@ -64,7 +92,9 @@ fun SettingsScreen(
 
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }) {
+                    .clickable {
+                        restoreLauncher.launch(arrayOf("*/*"))
+                    }) {
                     Text(
                         text = stringResource(id = R.string.load_accounts),
                         modifier = Modifier.padding(0.dp, 10.dp)
