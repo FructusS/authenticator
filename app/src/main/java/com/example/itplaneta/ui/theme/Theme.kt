@@ -1,8 +1,5 @@
 package com.example.itplaneta.ui.theme
 
-import android.content.res.Resources
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
