@@ -7,21 +7,17 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
-import com.example.itplaneta.camera.QrCodeAnalyzer
-import com.example.itplaneta.ui.navigation.Screens
-import com.example.itplaneta.ui.screens.component.TopBar
+import com.example.itplaneta.core.camera.QrCodeAnalyzer
+import com.example.itplaneta.ui.navigation.QrScannerDestination
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
@@ -30,41 +26,38 @@ import com.google.accompanist.permissions.rememberPermissionState
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ScannerScreen(
-    navController: NavHostController,
+    navigateBack: () -> Unit,
+    onNavigateUp: () -> Unit,
+    canNavigateBack: Boolean = true,
     viewModel: QrScannerViewModel = hiltViewModel()
 ) {
     val cameraPermission = rememberPermissionState(
         permission = Manifest.permission.CAMERA
     )
     val context = LocalContext.current
-    var scanResult by rememberSaveable { mutableStateOf("") }
-
+    //var scanResult by rememberSaveable { mutableStateOf("") }
     Column {
         when (val status = cameraPermission.status) {
             is PermissionStatus.Denied -> {
                 AlertDialog(
 
-                    onDismissRequest = {},
-                    text = {
+                    onDismissRequest = {}, text = {
                         if (status.shouldShowRationale) {
                             Text(stringResource(R.string.camera_permissions_required))
                         } else {
                             Text(stringResource(R.string.camera_permissions_not_granted))
                         }
-                    },
-                    buttons = {
+                    }, buttons = {
                         Row(modifier = Modifier.padding(8.dp)) {
 
-                            TextButton(onClick = { navController.popBackStack() })
-                            {
+                            TextButton(onClick = { navigateBack() }) {
 
                                 Text(stringResource(id = R.string.cancel))
                             }
                             Spacer(modifier = Modifier.weight(1f))
                             TextButton(onClick = {
                                 cameraPermission.launchPermissionRequest()
-                            })
-                            {
+                            }) {
                                 Text(stringResource(R.string.ok))
                             }
                         }
@@ -72,40 +65,38 @@ fun ScannerScreen(
 
                 )
             }
+
             is PermissionStatus.Granted -> {
-                Scaffold(
-                    topBar = {
-                        TopBar(navController = navController)
-                    }
-                ) {
-                    CameraPreview(
-                        state = rememberCameraState(
-                            context = context,
-                            analysis = ImageAnalysis.Builder()
-                                .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                                .build()
-                                .also { analysis ->
-                                    analysis.setAnalyzer(
-                                        ContextCompat.getMainExecutor(context),
-                                        QrCodeAnalyzer(
-                                            onSuccess = {
-                                                if (scanResult != it.text) {
+                Scaffold(topBar = {
+                    AuthenticatorTopAppBar(
+                        title = stringResource(id = QrScannerDestination.titleScreen),
+                        canNavigateBack = canNavigateBack,
+                        navigateUp = onNavigateUp
+                    )
+                }) {
+                    if (viewModel.hasReadCode.value) {
+                        onNavigateUp()
+                    } else {
+                        CameraPreview(
+                            state = rememberCameraState(context = context,
+                                analysis = ImageAnalysis.Builder()
+                                    .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST).build()
+                                    .also { analysis ->
+                                        analysis.setAnalyzer(
+                                            ContextCompat.getMainExecutor(context),
+                                            QrCodeAnalyzer(onSuccess = {
+                                                if (it.text.isNotBlank()) {
                                                     viewModel.parse(it.text)
-                                                    navController.navigate(Screens.Main.route)
-                                                    scanResult = it.text
                                                 }
 
-                                            },
-                                            onFail = {
+                                            }, onFail = {
                                                 Log.i("123", "fail")
-                                            }
+                                            })
                                         )
-                                    )
-                                }
+                                    })
                         )
-                    )
+                    }
                 }
-
             }
         }
     }

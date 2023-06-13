@@ -2,7 +2,7 @@ package com.example.itplaneta.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val primaryDarkMode = Color(0xFF504F4F)
+val primaryDarkMode = Color(0xFF646464)
 val primaryVariantDarkMode = Color(0xFF3700B3)
 val secondaryDarkMode = Color(0xFF504F4F)
 val secondaryVariantDarkMode = Color(0xFFCCCCCC)

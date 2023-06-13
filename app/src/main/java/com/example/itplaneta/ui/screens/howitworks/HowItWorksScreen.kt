@@ -18,9 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.example.itplaneta.R
-import com.example.itplaneta.ui.navigation.Screens
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
@@ -30,7 +28,9 @@ import kotlinx.coroutines.launch
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HowItWorksScreen(navController: NavHostController) {
+fun HowItWorksScreen(
+    onNavigateUp: () -> Unit,
+) {
     val pagerState = rememberPagerState()
     val items = createItems()
     Column(
@@ -41,9 +41,7 @@ fun HowItWorksScreen(navController: NavHostController) {
         verticalArrangement = Arrangement.Center,
     ) {
         HorizontalPager(
-            count = items.size,
-            state = pagerState,
-            verticalAlignment = Alignment.CenterVertically
+            count = items.size, state = pagerState, verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -54,8 +52,7 @@ fun HowItWorksScreen(navController: NavHostController) {
                     contentDescription = "image"
                 )
                 Text(
-                    text = stringResource(id = items[it].description),
-                    textAlign = TextAlign.Center
+                    text = stringResource(id = items[it].description), textAlign = TextAlign.Center
                 )
             }
 
@@ -69,11 +66,8 @@ fun HowItWorksScreen(navController: NavHostController) {
         val coroutineScope = rememberCoroutineScope()
         Button(onClick = {
             if (pagerState.currentPage == items.size - 1) {
-                navController.navigate(Screens.Settings.route) {
-                    popUpTo(Screens.Settings.route) {
-                        inclusive = true
-                    }
-                }
+                onNavigateUp()
+
             } else {
                 coroutineScope.launch {
                     pagerState.animateScrollToPage(page = pagerState.currentPage + 1)
@@ -93,19 +87,13 @@ fun HowItWorksScreen(navController: NavHostController) {
 
 
 data class HorizontalPagerContent(
-    @StringRes
-    val description: Int,
-    @DrawableRes
-    val image: Int
+    @StringRes val description: Int, @DrawableRes val image: Int
 )
 
 fun createItems() = listOf(
     HorizontalPagerContent(
-        description = R.string.first_pager,
-        image = R.drawable. ic_qr_scanner_phone
-    ),
-    HorizontalPagerContent(
-        description = R.string.second_pager,
-        image = R.drawable.ic_correct_otp_code
+        description = R.string.first_pager, image = R.drawable.ic_qr_scanner_phone
+    ), HorizontalPagerContent(
+        description = R.string.second_pager, image = R.drawable.ic_correct_otp_code
     )
 )

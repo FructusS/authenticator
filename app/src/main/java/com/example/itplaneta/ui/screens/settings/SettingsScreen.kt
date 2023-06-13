@@ -18,12 +18,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
-import com.example.itplaneta.ui.navigation.Screens
-import com.example.itplaneta.ui.screens.component.TopBar
+import com.example.itplaneta.ui.navigation.SettingsDestination
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
@@ -31,7 +29,10 @@ import java.time.format.DateTimeFormatter
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SettingsScreen(
-    navController: NavHostController, viewModel: SettingsViewModel = hiltViewModel()
+    onNavigateUp: () -> Unit,
+    onNavigateToHowItWorks: () -> Unit,
+    canNavigateBack: Boolean = true,
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
 
@@ -52,7 +53,7 @@ fun SettingsScreen(
         }
     )
     Scaffold(topBar = {
-        TopBar(navController = navController)
+        AuthenticatorTopAppBar(title = stringResource(id = SettingsDestination.titleScreen), canNavigateBack = canNavigateBack, navigateUp = onNavigateUp)
     }) {
         Column(
             Modifier
@@ -68,7 +69,7 @@ fun SettingsScreen(
                 )
                 Row(modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { navController.navigate(Screens.HowItWorks.route) }) {
+                    .clickable { onNavigateToHowItWorks() }) {
                     Text(
                         text = stringResource(id = R.string.how_it_works),
                         modifier = Modifier.padding(0.dp, 10.dp)
@@ -80,8 +81,8 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .clickable {
                         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm")
-                        val current = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(formatter)
-                       backupLauncher.launch("backupAuth-${current}")
+                        val current = LocalDateTime.now().format(formatter)
+                        backupLauncher.launch("backup-authenticator")
                     }) {
                     Text(
                         text = stringResource(id = R.string.save_accounts),
@@ -93,7 +94,7 @@ fun SettingsScreen(
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        restoreLauncher.launch(arrayOf("*/*"))
+                        restoreLauncher.launch(arrayOf("application/json"))
                     }) {
                     Text(
                         text = stringResource(id = R.string.load_accounts),

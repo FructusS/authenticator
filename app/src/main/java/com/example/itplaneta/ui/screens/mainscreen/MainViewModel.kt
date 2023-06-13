@@ -1,13 +1,13 @@
-package com.example.itplaneta.ui.screens.main
+package com.example.itplaneta.ui.screens.mainscreen
 
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.itplaneta.data.database.Account
+import com.example.itplaneta.data.sources.Account
 
-import com.example.itplaneta.data.database.AccountRepository
-import com.example.itplaneta.otp.OtpGenerator
-import com.example.itplaneta.otp.OtpType
+import com.example.itplaneta.domain.AccountRepository
+import com.example.itplaneta.core.otp.models.OtpGenerator
+import com.example.itplaneta.core.otp.models.OtpType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -67,7 +67,7 @@ class MainViewModel @Inject constructor(
     }
 
 
-    fun deleteAccount(account: Account){
+    suspend fun deleteAccount(account: Account){
         accountRepository.deleteAccount(account)
     }
 
@@ -92,11 +92,9 @@ class MainViewModel @Inject constructor(
         totpTimer.cancel()
     }
 
-    fun incrementHotpCounter(id: Int) {
-        viewModelScope.launch {
-            accountRepository.incrementHotpCounter(id)
-        }
+    suspend fun incrementHotpCounter(account: Account){
+       // val account = accountRepository.getAccountById(id)
+        accountRepository.incrementHotpCounter(account)
     }
-
 
 }

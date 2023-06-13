@@ -4,8 +4,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.itplaneta.data.database.Account
-import com.example.itplaneta.data.database.AccountRepository
+import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.AccountRepository
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.*
-import java.nio.charset.StandardCharsets
-import java.util.stream.Collectors
 import javax.inject.Inject
 
 
@@ -35,27 +33,33 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-
+    private val accountList = accountRepository.getAccounts()
     fun saveBackupToExternal(uri: Uri) {
-        try {
-            try {
-                context.contentResolver.openFileDescriptor(uri, "w")?.use {
-                    FileOutputStream(it.fileDescriptor).use { it ->
-                        it.write(
-                            GsonBuilder().create().toJson(getAll())
-                                .toByteArray()
-                        )
+
+        viewModelScope.launch {
+            accountList.collect{list ->
+                try {
+                    try {
+                        context.contentResolver.openFileDescriptor(uri, "w")?.use {
+                            FileOutputStream(it.fileDescriptor).use { it ->
+                                it.write(
+                                    GsonBuilder().create().toJson(list)
+                                        .toByteArray()
+                                )
+                            }
+                        }
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
+
+                } catch (_: IOException) {
+
                 }
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
-            } catch (e: IOException) {
-                e.printStackTrace()
             }
-
-        } catch (_: IOException) {
-
         }
+
     }
 
     fun restoreBackupFromExternal(uri: Uri) {
@@ -76,12 +80,17 @@ class SettingsViewModel @Inject constructor(
         if (accounts.isNotEmpty()){
             accounts.forEach {
                     account ->
-                accountRepository.addAccount(account)
+                viewModelScope.launch {
+                    accountRepository.addAccount(account)
+
+                }
             }
         }
     }
 
-    private fun getAll() = accountRepository.getAllAccounts()
+    private fun getAllAccounts() = accountRepository.getAllAccounts()
+
+
 
 
 }

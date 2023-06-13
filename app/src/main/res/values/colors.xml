@@ -12,4 +12,7 @@
     <color name="bg_floatingbutton">#E6E6E6</color>
     <color name="bg_toolbar">#E6E6E6</color>
     <color name="border">#605E5E</color>
+    <color name="green">#FF0AD63E</color>
+    <color name="yellow">#FFFFE926</color>
+
 </resources>

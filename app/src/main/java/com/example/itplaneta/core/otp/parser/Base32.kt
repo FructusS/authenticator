@@ -1,7 +1,5 @@
-package com.example.itplaneta.utils
+package com.example.itplaneta.core.otp.parser
 
-import androidx.compose.ui.res.stringResource
-import com.example.itplaneta.R
 import javax.inject.Inject
 import javax.inject.Singleton
 

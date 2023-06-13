@@ -11,7 +11,7 @@
     <string name="account">Account</string>
     <string name="label_account">Account label</string>
     <string name="secret">Secret key</string>
-    <string name="code">Code</string>
+    <string name="secret_key">Secret key</string>
     <string name="otp_type">Type</string>
     <string name="otp_type_by_time">By time</string>
     <string name="otp_type_by_counter">By counter</string>
@@ -34,6 +34,23 @@
     <string name="continue_">Continue</string>
     <string name="first_pager">To add an account, scan the QR code or write the data manually from the online service</string>
     <string name="second_pager">Next, the generated code must be confirmed in the online service. Don\'t forget to keep the backup codes provided.</string>
+    <string name="add">Add</string>
+    <string name="edit">Edit</string>
+    <string name="scanning">Scanner</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="fill_the_secret">Fill the secret</string>
+    <string name="secret_can_only_containt_base32chars">Secret can only contain ABCDEFGHIJKLMNOPQRSTUVWXYZ234567</string>
+    <string name="fill_the_label">Fill the label</string>
+    <string name="fill_the_counter">Fill the counter</string>
+    <string name="fill_the_period">Fill the period</string>
+    <string name="incorrect_period">Incorrect period</string>
+    <string name="fill_the_digits">Fill the length code</string>
+    <string name="incorrect_digits">Incorrect length code.Code length must be from 6 to 10</string>
+    <string name="secret_key_to_short">Key value too short. Secret key length at least 16 chars</string>
+    <string name="action_confirmation">Action confirmation</string>
+    <string name="you_want_delete_selected_item">Are you sure you want to delete the selected item?</string>
+    <string name="delete">Delete</string>
+    <string name="fail_scan_qr_code">Fail scan qrcode</string>
     <string-array name="theme_app">
         <item>Dark mode</item>
         <item>Light mode</item>

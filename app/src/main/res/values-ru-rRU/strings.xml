@@ -13,7 +13,7 @@
     <string name="account">аккаунт</string>
     <string name="label_account">Название аккаунта</string>
     <string name="secret">Ключ</string>
-    <string name="code">Код</string>
+    <string name="secret_key">Ключ</string>
     <string name="otp_type">Тип</string>
     <string name="otp_algorithm">Алгоритм</string>
     <string name="length_otp_code">Длина кода</string>
@@ -33,8 +33,25 @@
     <string name="main_settings">Основные</string>
     <string name="exit">Выход</string>
     <string name="continue_">Далее</string>
-    <string name="first_pager">Для того,чтобы добавить аккаунт отсканируйте qr-код или запишите данные вручную из онлайн-сервиса</string>
-    <string name="second_pager">Далее сгенерированный код необходимо подтвердить в онлайн-сервисе. Не забудьте сохранить резервные коды предоставленные онлайн-сервисом</string>
+    <string name="first_pager">Для того,чтобы добавить аккаунт отсканируйте qr-код или заполните данные вручную из сервиса</string>
+    <string name="second_pager">Далее сгенерированный код необходимо подтвердить в сервисе</string>
+    <string name="add">Добавление</string>
+    <string name="edit">Редактирование</string>
+    <string name="scanning">Сканирование</string>
+    <string name="something_went_wrong" />
+    <string name="fill_the_secret">Заполните секретный ключ</string>
+    <string name="secret_can_only_containt_base32chars">Секретный ключ содержит только ABCDEFGHIJKLMNOPQRSTUVWXYZ234567</string>
+    <string name="fill_the_label">Заполните название аккаунта</string>
+    <string name="fill_the_counter">Заполните счетчик кода</string>
+    <string name="fill_the_period">Заполните время действия кода</string>
+    <string name="incorrect_period">Некорректное время действия кода</string>
+    <string name="fill_the_digits">Заполните длину кода</string>
+    <string name="incorrect_digits">Некорректное длина кода. Длина кода от 6 до 10</string>
+    <string name="secret_key_to_short">Секретный ключ короткий. Длина секретного ключа должна быть больше 16</string>
+    <string name="action_confirmation">Подтверждение действия</string>
+    <string name="you_want_delete_selected_item">Вы действительно хотите удалить выбранный элемент?</string>
+    <string name="delete">Удалить</string>
+    <string name="fail_scan_qr_code">Не удалось отсканировать QR-код</string>
     <string-array name="theme_app">
         <item>Темная тема</item>
         <item>Светлая тема</item>

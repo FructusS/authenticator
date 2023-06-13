@@ -1,218 +1,134 @@
 package com.example.itplaneta.ui.screens.account
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.itplaneta.data.database.Account
-import com.example.itplaneta.data.database.AccountRepository
-import com.example.itplaneta.otp.OtpAlgorithm
-import com.example.itplaneta.otp.OtpType
-import com.example.itplaneta.utils.Base32
+import androidx.lifecycle.viewModelScope
+import com.example.itplaneta.R
+import com.example.itplaneta.core.otp.models.OtpType
+import com.example.itplaneta.core.otp.parser.Base32
+import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.AccountRepository
+import com.example.itplaneta.domain.RawAccount
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountViewModel @Inject constructor(private val accountRepository: AccountRepository) :
-    ViewModel() {
-
+class AccountViewModel @Inject constructor(
+    private val accountRepository: AccountRepository,
+) : ViewModel() {
 
     private val base32 = Base32()
 
-    //region Otp algorithm
+    private val _state = MutableStateFlow(AccountUiState())
+    val state = _state.asStateFlow()
 
-    val otpAlgorithmLists = listOf(OtpAlgorithm.Sha1, OtpAlgorithm.Sha256, OtpAlgorithm.Sha512)
-    var otpAlgorithm by mutableStateOf(otpAlgorithmLists[0])
-        private set
 
-    fun updateOtpAlgorithm(otpAlgorithm: OtpAlgorithm) {
-        this.otpAlgorithm = otpAlgorithm
+    private val account
+        get() = _state.value.account
+
+    fun updateUiState(account: RawAccount) {
+        _state.value = _state.value.copy(account = account)
     }
 
-    //endregion
-
-    //region OtpType
-    val otpTypeList = listOf(OtpType.Totp, OtpType.Hotp)
-    var otpType by mutableStateOf(otpTypeList[0])
-        private set
-
-    fun updateOtpType(otpType: OtpType) {
-        this.otpType = otpType
-    }
-
-
-    //endregion
-
-    //region label
-    var label by mutableStateOf("")
-        private set
-
-    var errorLabel by mutableStateOf(false)
-        private set
-    var errorLabelText by mutableStateOf("")
-        private set
-
-    fun updateLabel(newLabel: String) {
-        this.label = newLabel
-    }
-    //endregion
-
-    //region issuer
-    var issuer by mutableStateOf("")
-        private set
-
-    fun updateIssuer(newIssuer: String) {
-        this.issuer = newIssuer
-    }
-    //endregion
-
-    //region secret
-    var secret by mutableStateOf("")
-        private set
-
-    var errorSecret by mutableStateOf(false)
-        private set
-
-    var errorSecretText by mutableStateOf("")
-        private set
-
-    fun updateSecret(newSecret: String) {
-        this.secret = newSecret
-    }
-
-    //endregion secret
-
-    //region digits
-    var digits by mutableStateOf("6")
-        private set
-    var errorDigits by mutableStateOf(false)
-        private set
-
-    fun updateDigits(oldDigits: String) {
-        this.digits = oldDigits
-    }
-    //endregion
-
-    //region period
-
-    var period by mutableStateOf("30")
-    private set
-    var errorPeriod by mutableStateOf(false)
-        private set
-
-    fun updatePeriod(oldPeriod: String) {
-        this.period = oldPeriod
-    }
-
-
-
-    //endregion
-
-    //region counter
-
-    var counter by mutableStateOf("0")
-        private set
-    var errorCounter by mutableStateOf(false)
-        private set
-
-    fun updateCounter(oldCounter: String) {
-        this.counter = oldCounter
-    }
-    //endregion
-
-    fun addAccount(): Boolean {
-        resetErrors()
-
-        if (label.isEmpty()) {
-            errorLabel = true
-            errorLabelText = "Название аккаунта не может быть пустым"
+    private fun validateInput(): Boolean {
+        _state.value = _state.value.copy(errorType = ErrorType.Nothing)
+        if (account.label.isBlank()) {
+            _state.value = _state.value.copy(errorType = ErrorType.LabelError, errorText = R.string.fill_the_label)
             return false
         }
 
-        if (secret.isEmpty()) {
-            errorSecret = true
-            errorSecretText = "Секретный ключ не может быть пустым"
+        if (account.secret.isBlank() || account.secret.replace(" ","").length < 16){
+            _state.value = _state.value.copy(errorType = ErrorType.SecretError, errorText = R.string.secret_key_to_short)
             return false
         }
-        if (secret.length < 8) {
-            errorSecret = true
-            errorSecretText = "Секретный ключ короткий"
+        if (account.tokenType == OtpType.Hotp){
+            if(account.counter.toLongOrNull() == null){
+                _state.value = _state.value.copy(errorType = ErrorType.CounterError, errorText = R.string.fill_the_counter)
+                return false
+            }
+        }
+
+        else{
+            if (account.period.toIntOrNull() == null) {
+                _state.value = _state.value.copy(errorType = ErrorType.PeriodError, errorText = R.string.incorrect_period)
+                return false
+            }
+            if (account.period.toInt() < 1 && account.period.toInt() > Int.MAX_VALUE / 1000){
+                _state.value = _state.value.copy(errorType = ErrorType.PeriodError, errorText = R.string.incorrect_period)
+                return false
+            }
+        }
+
+        if (account.digits.toIntOrNull() == null) {
+            _state.value = _state.value.copy(errorType = ErrorType.DigitsError, errorText = R.string.incorrect_digits)
             return false
         }
-        if (digits.isEmpty()){
-            errorDigits = true
-            return false
-        }
-        if (digits.toInt() < 6 || digits.toInt() > 10){
-            errorDigits = true
+        if (account.digits.toInt() < 6 || account.digits.toInt() > 10) {
+            _state.value = _state.value.copy(errorType = ErrorType.DigitsError, errorText = R.string.incorrect_digits)
             return false
         }
         try {
-            base32.decodeBase32(secret.uppercase())
+            base32.decodeBase32(account.secret.uppercase())
         } catch (ex: Exception) {
-            errorSecret = true
-            errorSecretText =
-                "Секретный ключ должен содержать только ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
+            _state.value = _state.value.copy(errorType = ErrorType.SecretError, errorText = R.string.secret_can_only_containt_base32chars)
             return false
         }
-
-
-        accountRepository.addAccount(
-            Account(
-                0,
-                label = label,
-                issuer = issuer,
-                tokenType = otpType,
-                algorithm = otpAlgorithm,
-                secret = secret,
-                digits = digits.toInt(),
-                counter = counter.toLong(),
-                period = period.toInt()
-            )
-        )
         return true
     }
 
-    private fun resetErrors() {
-        errorLabel = false
-        errorSecret = false
-        errorDigits = false
-        errorPeriod = false
-        errorCounter = false
 
-    }
+    suspend fun addAccount(navigateBack: () -> Unit) {
 
-    fun updateAccountField(accountId: Int) {
-        val account = getAccountById(accountId)
-
-        account.issuer?.let { updateIssuer(it) }
-
-        updateLabel(account.label)
-        updateSecret(account.secret)
-        updateOtpType(account.tokenType)
-        updateOtpAlgorithm(account.algorithm)
-        updateDigits(account.digits.toString())
-        updateCounter(account.counter.toString())
-        updatePeriod(account.period.toString())
-    }
-
-
-    fun updateAccount(id: Int) {
-        accountRepository.updateAccount(
-            Account(
-                id,
-                label = label,
-                issuer = issuer,
-                tokenType = otpType,
-                algorithm = otpAlgorithm,
-                secret = secret,
-                digits = digits.toInt(),
-                counter = counter.toLong(),
-                period = period.toInt()
+        if (validateInput()) {
+            accountRepository.addAccount(
+                account.toAccount()
             )
-        )
+            navigateBack()
+        }
     }
 
-    private fun getAccountById(id: Int): Account =
-        accountRepository.getAccountById(id)
+
+    suspend fun updateAccount(navigateBack: () -> Unit) {
+        if (validateInput()) {
+            accountRepository.updateAccount(
+                account.toAccount()
+            )
+            navigateBack()
+        }
+    }
+
+    fun getAccountById(id: Int): RawAccount = accountRepository.getAccountById(id).toRawAccount()
+
+    private fun Account.toRawAccount(): RawAccount = RawAccount(
+        id = id,
+        digits = digits.toString(),
+        counter = counter.toString(),
+        secret = secret,
+        label = label,
+        issuer = issuer,
+        period = period.toString(),
+        algorithm = algorithm,
+        tokenType = tokenType,
+    )
+
+    private fun RawAccount.toAccount(): Account = Account(
+        id = id,
+        digits = digits.toInt(),
+        counter = counter.toLong(),
+        secret = secret,
+        label = label,
+        issuer = issuer,
+        period = period.toInt(),
+        algorithm = algorithm,
+        tokenType = tokenType
+    )
+
+    fun updateUiStateByAccountId(accountId: Int) {
+        viewModelScope.launch {
+            updateUiState(accountRepository.getAccountById(accountId).toRawAccount())
+        }
+    }
+
 }

@@ -1,11 +1,11 @@
 package com.example.itplaneta.di
 
 import android.content.Context
-import androidx.room.Room
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.itplaneta.data.database.AccountDao
-import com.example.itplaneta.data.database.AccountRoomDatabase
+import com.example.itplaneta.data.sources.database.AccountDao
+import com.example.itplaneta.data.repository.AccountRepositoryImpl
+import com.example.itplaneta.data.sources.database.AccountDatabase
+import com.example.itplaneta.domain.AccountRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,27 +18,29 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 class DatabaseModule {
-    @Provides
-    fun ProvideAccountDao(accountRoomDatabase: AccountRoomDatabase): AccountDao {
-        return accountRoomDatabase.accountDao()
-    }
-    @Provides
+
     @Singleton
-    fun ProvideAccountRoomDatabase(@ApplicationContext appContext: Context): AccountRoomDatabase {
-        return Room.databaseBuilder(
-            appContext,
-            AccountRoomDatabase::class. java ,
-            "AccountDatabase"
-        )
-            .addMigrations(MIGRATION_2_3)
-            .fallbackToDestructiveMigration()
-            .allowMainThreadQueries()
-            .build()
+    @Provides
+    fun provideDataBase(@ApplicationContext context: Context): AccountDatabase {
+        return AccountDatabase.getDatabase(context)
     }
+
+    @Provides
+    fun provideAccountDao(accountDatabase: AccountDatabase): AccountDao {
+        return accountDatabase.accountDao()
+    }
+
 }
 
-val MIGRATION_2_3: Migration = object : Migration(2, 3) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("delete from accounts")
-    }
+
+@Module
+
+@InstallIn(SingletonComponent::class)
+interface RepositoryModule{
+    @Binds
+
+    fun provideAccountRepository(
+        impl: AccountRepositoryImpl
+    ): AccountRepository
+
 }

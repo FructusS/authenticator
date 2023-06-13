@@ -1,4 +1,4 @@
-package com.example.itplaneta.otp
+package com.example.itplaneta.core.otp.models
 
 import org.apache.commons.codec.binary.Base32
 import java.nio.ByteBuffer
