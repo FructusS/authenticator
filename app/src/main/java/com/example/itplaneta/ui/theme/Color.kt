@@ -1,29 +1,43 @@
 package com.example.itplaneta.ui.theme
 
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
-val primaryDarkMode = Color(0xFF646464)
-val primaryVariantDarkMode = Color(0xFF3700B3)
-val secondaryDarkMode = Color(0xFF504F4F)
-val secondaryVariantDarkMode = Color(0xFFCCCCCC)
-val backgroundDarkMode = Color(0xFF312E2E)
-val surfaceDarkMode = Color(0xFF312E2E)
-val errorDarkMode = Color(0xFFCF6679)
-val onPrimaryDarkMode = Color(0xF0000000)
-val onSecondaryDarkMode = Color(0xF0000000)
-val onBackgroundDarkMode = Color(0xFFFFFFFF)
-val onSurfaceDarkMode = Color(0xFFFFFFFF)
-val onErrorDarkMode = Color(0xF0000000)
+// Semantic Colors
+object SemanticColors {
+    val Primary = Color(0xFF2196F3)
+    val PrimaryDark = Color(0xFF1565C0)
+    val Secondary = Color(0xFF03DAC5)
+    val Error = Color(0xFFB00020)
+    val Success = Color(0xFF4CAF50)
+    val Warning = Color(0xFFFF9800)
+}
 
-val primaryLightMode = Color(0xFFACAAAF)
-val primaryVariantLightMode = Color(0xFFACAAAF)
-val secondaryLightMode = Color(0xFFA5A3A8)
-val secondaryVariantLightMode = Color(0xB9000000)
-val backgroundLightMode = Color(0xFFFFFFFF)
-val surfaceLightMode = Color(0xFFFFFFFF)
-val errorLightMode = Color(0xFFb00020)
-val onPrimaryLightMode = Color(0x81000000)
-val onSecondaryLightMode = Color(0xF0000000)
-val onBackgroundLightMode = Color(0xF0000000)
-val onSurfaceLightMode = Color(0xF0000000)
-val onErrorLightMode = Color(0xFFFFFFFF)
+// Light Theme
+val LightColors = lightColorScheme(
+    primary = SemanticColors.Primary,
+    onPrimary = Color.White,
+    secondary = SemanticColors.Secondary,
+    onSecondary = Color.Black,
+    error = SemanticColors.Error,
+    onError = Color.White,
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF000000),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF000000)
+)
+
+// Dark Theme
+val DarkColors = darkColorScheme(
+    primary = Color(0xFF90CAF9),
+    onPrimary = Color.Black,
+    secondary = SemanticColors.Secondary,
+    onSecondary = Color.Black,
+    error = Color(0xFFCF6679),
+    onError = Color.Black,
+    background = Color(0xFF121212),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color(0xFFFFFFFF)
+)
