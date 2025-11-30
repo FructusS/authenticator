@@ -1,10 +1,7 @@
 package com.example.itplaneta.ui.screens.mainscreen
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -13,9 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,29 +25,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.MaterialTheme.colors
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.ProvideTextStyle
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,130 +51,68 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
-import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
 import com.example.itplaneta.data.sources.Account
 import kotlinx.coroutines.launch
-import kotlin.math.ceil
 
-
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel(),
     navigateToSettings: () -> Unit,
     navigateToQrScanner: () -> Unit,
     navigateToAddAccount: () -> Unit,
-    navigateToEditAccount: (Int) -> Unit,
-
-    ) {
+    navigateToEditAccount: (Int?) -> Unit,
+    canNavigateBack: Boolean = false
+) {
     val coroutineScope = rememberCoroutineScope()
-    var isSettingButtonClick by remember {
-        mutableStateOf(false)
-    }
-    var isAllFABsVisible by remember {
-        mutableStateOf(false)
-    }
+    var isAllFABsVisible by remember { mutableStateOf(false) }
 
-    val iconSettingsRotation by animateFloatAsState(if (isSettingButtonClick) 45f else 0f)
     val iconAddRotation by animateFloatAsState(if (isAllFABsVisible) 45f else 0f)
-    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+
+    val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
-    var openDialog = remember { mutableStateOf(false) }
 
-    var selectedAccount = remember {
-        mutableStateOf(Account(0,"","",OtpType.Totp,OtpAlgorithm.Sha1,"",6,0,30))
-    }
+    var openDialog by remember { mutableStateOf(false) }
+    var selectedAccount by remember { mutableStateOf<Account?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(backgroundColor = colors.primary) {
+    val accountsState by viewModel.accounts.collectAsState(initial = emptyList())
+    val codesState by viewModel.codes.collectAsState(initial = emptyMap())
+    val timerProgresses by viewModel.timerProgresses.collectAsState(initial = emptyMap())
+    val timerValues by viewModel.timerValues.collectAsState(initial = emptyMap())
+
+    Scaffold(topBar = {
+        AuthenticatorTopAppBar(
+            title = { /* можно показать логотип/пусто */ },
+            canNavigateBack = canNavigateBack,
+            actions = {
                 IconButton(onClick = {
-                    isSettingButtonClick = !isSettingButtonClick
                     navigateToSettings()
                 }) {
                     Icon(
-                        Icons.Default.Settings,
+                        imageVector = Icons.Default.Settings,
                         contentDescription = stringResource(id = R.string.settings),
-                        modifier = Modifier.rotate(iconSettingsRotation)
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-            }
-        },
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-
-                AnimatedVisibility(
-                    visible = isAllFABsVisible,
-                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom),
-                    exit = slideOutVertically(targetOffsetY = { fullWidth -> fullWidth }) + shrinkVertically(),
-
-                    ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        SmallFloatingActionButton(
-                            onClick = {
-                                navigateToQrScanner()
-                            }, containerColor = colors.secondary
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_qr_code_scanner),
-                                contentDescription = "add"
-                            )
-                        }
-
-                        SmallFloatingActionButton(
-
-                            onClick = {
-                                navigateToAddAccount()
-                            }, containerColor = colors.secondary
-
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_edit),
-                                contentDescription = "add"
-                            )
-                        }
-                    }
-
-
-                }
-
-                FloatingActionButton(onClick = {
-                    isAllFABsVisible = !isAllFABsVisible
-                }
-
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "add",
-                        modifier = Modifier.rotate(iconAddRotation)
-                    )
-                }
-
-            }
-        },
-
-        ) { paddingValues ->
-        val list = viewModel.accounts.collectAsState(initial = emptyList())
+            })
+    }, floatingActionButton = {
+        MainFabs(
+            expanded = isAllFABsVisible,
+            onToggle = { !isAllFABsVisible },
+            actions = listOf({ navigateToQrScanner() } to R.drawable.ic_qr_code_scanner,
+                { navigateToAddAccount() } to R.drawable.ic_edit),
+            rotation = iconAddRotation)
+    }) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -194,222 +120,239 @@ fun MainScreen(
             contentPadding = PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            items(list.value) { account ->
-
-
-                val code = viewModel.codes[account.id]
-                Account(deleteClick = {
-                    selectedAccount.value = account
-                    openDialog.value = true
-                }, copyClick = {
-                    clipboardManager.setText(AnnotatedString(code.toString()))
-                    Toast.makeText(
-                        context, context.getText(R.string.copied), Toast.LENGTH_SHORT
-                    ).show()
-                }, issuer = if (account.issuer != "") { ->
-                    Text(
-                        overflow = TextOverflow.Ellipsis,
-                        text = account.issuer.toString(),
-                        maxLines = 1,
-                        fontSize = 20.sp,
-                        color = colors.primary
-                    )
-                } else null, label = {
-                    Text(
-                        text = account.label,
-                        maxLines = 1,
-                        fontSize = 25.sp,
-                        color = colors.onSurface,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-
-                    indicator = {
-                        if (OtpType.Totp == account.tokenType) {
-                            Box(
-                                modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center
-                            ) {
-                                val timerProgress = viewModel.timerProgresses[account.id]
-                                val timerValue = viewModel.timerValues[account.id]
-                                val period = account.period.times(0.33).also { ceil(it) }
-                                if (timerProgress != null) {
-                                    val animatedTimerProgress by animateFloatAsState(
-                                        targetValue = timerProgress,
-                                        animationSpec = tween(durationMillis = 500)
-                                    )
-                                    CircularProgressIndicator(
-                                        progress = animatedTimerProgress,
-                                        color = if (timerValue?.div(period)!! >= 2.0) {
-                                            colorResource(
-                                                id = R.color.green
-                                            )
-                                        } else if (timerValue.div(period) in 1.0..1.99) {
-                                            colorResource(
-                                                id = R.color.yellow
-                                            )
-                                        } else {
-                                            colors.error
-                                        }
-                                    )
-                                }
-                                if (timerValue != null) {
-                                    Text(timerValue.toString(), color = colors.onSurface)
-                                }
-                            }
+            items(accountsState, key = { it.id }) { account ->
+                val code = codesState[account.id]
+                AccountRow(
+                    account = account,
+                    code = code,
+                    timerProgress = timerProgresses[account.id],
+                    timerValue = timerValues[account.id],
+                    onDelete = {
+                        selectedAccount = account
+                        openDialog = true
+                    },
+                    onCopy = {
+                        val text = code ?: ""
+                        clipboardManager.setText(AnnotatedString(text))
+                        // Toast можно показать через Context/rememberToast helper
+                    },
+                    onEdit = { navigateToEditAccount(account.id) },
+                    onHotpIncrement = {
+                        coroutineScope.launch {
+                            viewModel.incrementHotpCounter(account)
                         }
-                        if (OtpType.Hotp == account.tokenType) {
-                            OutlinedButton(onClick = {
-                                coroutineScope.launch {
-                                    viewModel.incrementHotpCounter(
-                                        account
-                                    )
-                                }
-                            }) {
-                                Text(account.counter.toString(), color = colors.onSurface)
-                            }
-                        }
-                    }, code = {
-                        AnimatedContent(targetState = code, transitionSpec = {
-                            slideIntoContainer(
-                                towards = AnimatedContentScope.SlideDirection.Up,
-                                animationSpec = tween(500)
-                            ) + fadeIn() with slideOutOfContainer(
-                                towards = AnimatedContentScope.SlideDirection.Up,
-                                animationSpec = tween(500)
-                            ) + fadeOut()
-                        }) { animatedCode ->
-                            if (animatedCode != null) {
-
-                                Text(animatedCode, color = colors.onSurface)
-
-                            }
-                        }
-                    }, editClick = {
-                        navigateToEditAccount(account.id)
                     })
-
-                if (openDialog.value) {
-                    AlertDialog(
-                        containerColor = colors.secondaryVariant,
-                        onDismissRequest = {
-                            openDialog.value = false
-                        },
-                        title = { Text(text = stringResource(id = R.string.action_confirmation)) },
-                        text = { Text(text = stringResource(id = R.string.you_want_delete_selected_item)) },
-                        confirmButton = {
-                            Button(onClick = {
-                                openDialog.value = false
-                                coroutineScope.launch {
-                                    viewModel.deleteAccount(account = selectedAccount.value)
-                                }
-                            }) {
-                                Text(text = stringResource(id = R.string.delete))
-                            }
-                        },
-                        dismissButton = {
-
-
-                            Button(onClick = { openDialog.value = false }) {
-                                Text(text = stringResource(id = R.string.cancel))
-                            }
-                        },
-                    )
-                }
             }
+        }
+
+        if (openDialog && selectedAccount != null) {
+            AlertDialog(
+                onDismissRequest = { openDialog = false },
+                title = { Text(text = stringResource(id = R.string.action_confirmation)) },
+                text = { Text(text = stringResource(id = R.string.you_want_delete_selected_item)) },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(onClick = {
+                        openDialog = false
+                        selectedAccount?.let { acc ->
+                            coroutineScope.launch { viewModel.deleteAccount(acc) }
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.delete))
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(onClick = { openDialog = false }) {
+                        Text(text = stringResource(id = R.string.cancel))
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         }
     }
 }
 
 
 @Composable
-private fun Account(
-    deleteClick: () -> Unit,
-    copyClick: () -> Unit,
-    editClick: () -> Unit,
-    issuer: (@Composable () -> Unit)?,
-    label: @Composable () -> Unit,
-    indicator: @Composable () -> Unit,
-    code: @Composable () -> Unit,
-
+private fun MainFabs(
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    actions: List<Pair<() -> Unit, Int>>, // Pair<action, iconRes>
+    rotation: Float
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
     ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
+        AnimatedVisibility(
+            visible = expanded,
+            enter = slideInVertically() + expandVertically(expandFrom = Alignment.Bottom),
+            exit = slideOutVertically() + shrinkVertically()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                if (issuer != null) {
-                    val color = LocalContentColor.current.copy(alpha = 0.7f)
-                    CompositionLocalProvider(LocalContentColor provides color) {
-                        ProvideTextStyle(MaterialTheme.typography.h5) {
-                            issuer()
-                        }
+                actions.forEach { (action, iconRes) ->
+                    SmallFloatingActionButton(
+                        onClick = action, containerColor = MaterialTheme.colorScheme.secondary
+                    ) {
+                        Icon(painter = painterResource(id = iconRes), contentDescription = null)
                     }
                 }
-                ProvideTextStyle(MaterialTheme.typography.h5) {
-                    label()
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FloatingActionButton(
+            onClick = onToggle, containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = null,
+                modifier = Modifier.rotate(rotation)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AccountRow(
+    account: Account,
+    code: String?,
+    timerProgress: Float?,
+    timerValue: Long?,
+    onDelete: () -> Unit,
+    onCopy: () -> Unit,
+    onEdit: () -> Unit,
+    onHotpIncrement: () -> Unit,
+) {
+    Column {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start
+                ) {
+                    if (!account.issuer.isNullOrBlank()) {
+                        val faded = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        Text(
+                            text = account.issuer,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = faded
+                        )
+                    }
+
+                    Text(
+                        text = account.label,
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
-
-            }
-
-            AnimatedVisibility(
-                visible = true,
-            ) {
+                // Убрана бессмысленная AnimatedVisibility(true)
                 Column {
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp)
-
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        indicator()
-                        ProvideTextStyle(MaterialTheme.typography.h5) {
-                            code()
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Row(
-                            modifier = Modifier
-                                .wrapContentWidth()
-                                .padding(0.dp)
-                        ) {
-                            IconButton(onClick = copyClick) {
-                                Icon(
-                                    painterResource(id = R.drawable.ic_content_copy),
-                                    contentDescription = "copy",
-
+                        // TOTP индикатор
+                        if (account.tokenType == OtpType.Totp) {
+                            Box(
+                                modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center
+                            ) {
+                                timerProgress?.let { prog ->
+                                    val animProgress by animateFloatAsState(
+                                        targetValue = prog,
+                                        animationSpec = tween(durationMillis = 500)
                                     )
+                                    // Цвета — примеры. Можно заменить на theme.
+                                    val color = when {
+                                        timerValue == null -> MaterialTheme.colorScheme.primary
+                                        (timerValue) > (account.period * 0.66).toLong() -> MaterialTheme.colorScheme.secondary
+                                        (timerValue) > (account.period * 0.33).toLong() -> MaterialTheme.colorScheme.tertiary
+                                        else -> MaterialTheme.colorScheme.error
+                                    }
+                                    androidx.compose.material3.CircularProgressIndicator(
+                                        progress = animProgress,
+                                        color = color,
+                                        strokeWidth = 3.dp,
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                }
+                                timerValue?.let {
+                                    Text(it.toString(), color = MaterialTheme.colorScheme.onSurface)
+                                }
                             }
-                            IconButton(onClick = deleteClick) {
-                                Icon(Icons.Default.Delete, contentDescription = "delete")
-                            }
+                        }
 
-                            IconButton(onClick = editClick) {
-                                Icon(
-                                    painterResource(id = R.drawable.ic_edit),
-                                    contentDescription = "edit"
+                        if (account.tokenType == OtpType.Hotp) {
+                            OutlinedButton(onClick = onHotpIncrement) {
+                                Text(
+                                    account.counter.toString(),
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
 
+                        AnimatedContent(targetState = code, transitionSpec = {
+                            (slideInVertically(
+                                initialOffsetY = { it }, animationSpec = tween(500)
+                            ) + fadeIn()).togetherWith(
+                                slideOutVertically(
+                                    targetOffsetY = { -it }, animationSpec = tween(500)
+                                ) + fadeOut()
+                            )
+                        }) { animatedCode ->
+                            Text(
+                                text = animatedCode ?: "",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Spacer(Modifier.weight(1f))
+
+                        Row(modifier = Modifier.wrapContentWidth()) {
+                            IconButton(onClick = onCopy) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_content_copy),
+                                    contentDescription = "copy",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            IconButton(onClick = onDelete) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "delete",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            IconButton(onClick = onEdit) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_edit),
+                                    contentDescription = "edit",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
                     }
                 }
             }
-
         }
-    }
-    Divider(
-        modifier = Modifier
-            .height(1.dp)
-            .fillMaxWidth(),
-    )
-}
 
+        HorizontalDivider(
+            modifier = Modifier
+                .height(1.dp)
+                .fillMaxWidth(),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        )
+    }
+}
