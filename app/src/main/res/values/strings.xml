@@ -51,6 +51,17 @@
     <string name="you_want_delete_selected_item">Are you sure you want to delete the selected item?</string>
     <string name="delete">Delete</string>
     <string name="fail_scan_qr_code">Fail scan qrcode</string>
+    <string name="error_secret_empty">Secret must not be empty</string>
+    <string name="error_secret_invalid">Secret is invalid or has an incorrect format</string>
+
+    <string name="error_label_empty">Label must not be empty</string>
+    <string name="error_issuer_empty">Issuer must not be empty</string>
+
+    <string name="error_counter_invalid">Counter must be an integer greater than or equal to 0</string>
+
+    <string name="error_period_invalid">Period must be between 1 and 2,147,483 seconds</string>
+    <string name="error_digits_invalid">Number of digits must be between 1 and 9</string>
+
     <string-array name="theme_app">
         <item>Dark mode</item>
         <item>Light mode</item>

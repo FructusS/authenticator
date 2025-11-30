@@ -52,6 +52,19 @@
     <string name="you_want_delete_selected_item">Вы действительно хотите удалить выбранный элемент?</string>
     <string name="delete">Удалить</string>
     <string name="fail_scan_qr_code">Не удалось отсканировать QR-код</string>
+    <string name="error_secret_empty">Секретный ключ не должен быть пустым</string>
+    <string name="error_secret_invalid">Секретный ключ недействителен или имеет неверный формат</string>
+
+    <string name="error_label_empty">Название аккаунта не должна быть пустой</string>
+    <string name="error_issuer_empty">Платформа аккаунта не должна быть пустая</string>
+
+    <string name="error_counter_invalid">Счётчик должен быть целым числом, больше или равным 0</string>
+
+    <!-- Simple fixed-text variants -->
+    <string name="error_period_invalid">Период должен быть в диапазоне от 1 до 2147483 секунд</string>
+    <string name="error_digits_invalid">Длина кода должна быть от 1 до 9</string>
+
+
     <string-array name="theme_app">
         <item>Темная тема</item>
         <item>Светлая тема</item>
