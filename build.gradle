@@ -1,22 +1,98 @@
 buildscript {
     ext {
-        compose_ui_version = '1.2.0'
-        room_version = "2.5.0"
-        viewmodel_version = "2.5.1"
-        nav_version = "2.5.3"
-        accompanist_version = "0.28.0"
-        fragment_version = "1.3.6"
-        camera_version = "1.2.0"
-        commons_codec_version = "1.15"
-        material3_version = "1.0.1"
+        // ============================================================================
+        // ANDROID SDK VERSIONS
+        // ============================================================================
+        compileSdk = 36
+        minSdk = 26
+        targetSdk = 36
+
+        versionCode = 12
+        versionName = '1.2.0'
+        // ============================================================================
+        // COMPOSE & KOTLIN
+        // ============================================================================
+        compose_ui_version = '1.5.4'
+        kotlin_version = '1.9.10'
+        kotlin_compiler_ext_version = '1.5.4'
+        livedata_version = '1.9.5'
+        compose_ui_test_version = '1.9.5'
+
+        // ============================================================================
+        // ANDROIDX & GOOGLE LIBRARIES
+        // ============================================================================
+        activity_compose_version = '1.12.0'
+        androidx_core_version = '1.17.0'
+        androidx_lifecycle_version = '2.10.0'
+        appcompat_version = '1.7.1'
+        material3_version = '1.1.1'
+
+        // ============================================================================
+        // ROOM DATABASE
+        // ============================================================================
+        room_version = '2.8.4'
+
+        // ============================================================================
+        // DAGGER & HILT
+        // ============================================================================
+        hilt_version = '2.57.2'
+        hilt_navigation_compose = '1.0.0'
+
+        // ============================================================================
+        // JETPACK NAVIGATION
+        // ============================================================================
+        nav_version = '2.7.4'
+
+        // ============================================================================
+        // CAMERA & ZXING
+        // ============================================================================
+        camera_version = '1.3.0'
+        zxing_core_version = '3.5.2'
+        zxing_android_version = '4.3.0'
+
+        // ============================================================================
+        // ACCOMPANIST
+        // ============================================================================
+        accompanist_version = '0.33.0'
+
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
+        timber_version = '5.0.1'
+        gson_version = '2.10.1'
+        commons_codec_version = '1.15'
+
+        // ============================================================================
+        // SECURITY
+        // ============================================================================
+
+        security_crypto_version = '1.1.0-alpha06'
+        security_identity_version = '1.0.0-alpha03'
+        security_app_auth_version = '1.0.0-alpha02'
+        biometric_ktx_version = '1.2.0-alpha05'
+
+        // ============================================================================
+        // TESTING
+        // ============================================================================
+        junit_version = '4.13.2'
+        androidx_test_ext_version = '1.3.0'
+        espresso_version = '3.7.0'
+
+        // Fragment
+        fragment_version = '1.8.9'
     }
+
     dependencies {
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version")
+        classpath "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.0.0"
     }
-}// Top-level build file where you can add configuration options common to all sub-projects/modules.
+}
+
 plugins {
-    id 'com.android.application' version '7.4.2' apply false
-    id 'com.android.library' version '7.4.2' apply false
-    id 'org.jetbrains.kotlin.android' version '1.8.10' apply false
-    id 'com.google.dagger.hilt.android' version '2.44' apply false
+    id 'com.android.application' version '8.13.1' apply false
+    id 'com.android.library' version '8.13.1' apply false
+    id 'org.jetbrains.kotlin.android' version '2.0.0' apply false
+    id 'com.google.dagger.hilt.android' version '2.57.2' apply false
+    id "org.jetbrains.kotlin.plugin.compose" version '2.0.0' apply false
+    id 'androidx.room' version '2.6.1' apply false
 }

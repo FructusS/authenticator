@@ -1,125 +1,242 @@
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
+    id 'androidx.room'
 }
+apply plugin: "org.jetbrains.kotlin.plugin.compose"
 
 android {
     namespace 'com.example.itplaneta'
-    compileSdk 33
+    compileSdk = rootProject.ext.compileSdk
 
     defaultConfig {
         applicationId "com.example.itplaneta"
-        minSdk 24
-        targetSdk 33
-        versionCode 11
-        versionName "1.1"
+        minSdk rootProject.ext.minSdk
+        targetSdk rootProject.ext.targetSdk
+        versionCode rootProject.ext.versionCode
+        versionName rootProject.ext.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         vectorDrawables {
             useSupportLibrary true
         }
+
+        // For Zxing
+        ndk {
+            abiFilters "arm64-v8a", "x86_64"
+        }
     }
 
+    // ============================================================================
+    // BUILD TYPES
+    // ============================================================================
     buildTypes {
-        release {
+        debug {
+            debuggable true
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            buildConfigField "boolean", "DEBUG_MODE", "true"
+            buildConfigField "String", "LOG_LEVEL", '"DEBUG"'
+        }
+
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            buildConfigField "boolean", "DEBUG_MODE", "false"
+            buildConfigField "String", "LOG_LEVEL", '"ERROR"'
         }
     }
+
+    // ============================================================================
+    // COMPILE OPTIONS
+    // ============================================================================
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '21'
+        freeCompilerArgs += [
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+                "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+                "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
+        ]
     }
+
+    // ============================================================================
+    // BUILD FEATURES
+    // ============================================================================
     buildFeatures {
         compose true
+        aidl false
+        renderScript false
+        resValues false
+        shaders false
     }
+
+    // ============================================================================
+    // COMPOSE OPTIONS
+    // ============================================================================
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.3'
+        kotlinCompilerExtensionVersion rootProject.ext.kotlin_compiler_ext_version
     }
+
+    // ============================================================================
+    // PACKAGING OPTIONS
+    // ============================================================================
     packagingOptions {
         resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+            excludes += [
+                    '/META-INF/{AL2.0,LGPL2.1}',
+                    '/META-INF/proguard/androidx-*.pro',
+                    'META-INF/services/javax.annotation.processing.Processor'
+            ]
         }
+    }
+
+    // ============================================================================
+    // LINT OPTIONS
+    // ============================================================================
+    lint {
+        checkReleaseBuilds true
+        abortOnError true
+        warningsAsErrors true
+
+        disable 'MissingTranslation', 'ExtraTranslation'
+    }
+
+    // ============================================================================
+    // JAVA TOOLCHAIN
+    // ============================================================================
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    room {
+        schemaDirectory "$projectDir/schemas"
+    }
+
+    kapt {
+        correctErrorTypes = true
     }
 }
 
+// ============================================================================
+// DEPENDENCIES
+// ============================================================================
 dependencies {
+    // ============================================================================
+    // ANDROIDX CORE
+    // ============================================================================
+    implementation "androidx.core:core-ktx:${rootProject.ext.androidx_core_version}"
+    implementation "androidx.appcompat:appcompat:${rootProject.ext.appcompat_version}"
 
-    def lifecycle_version = "2.2.0"
+    // ============================================================================
+    // LIFECYCLE & VIEWMODEL
+    // ============================================================================
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:${rootProject.ext.androidx_lifecycle_version}"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:${rootProject.ext.androidx_lifecycle_version}"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:${rootProject.ext.androidx_lifecycle_version}"
 
-// LiveData
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    // ============================================================================
+    // COMPOSE
+    // ============================================================================
+    implementation "androidx.activity:activity-compose:${rootProject.ext.activity_compose_version}"
+    implementation "androidx.compose.ui:ui:${rootProject.ext.compose_ui_version}"
+    implementation "androidx.compose.ui:ui-tooling-preview:${rootProject.ext.compose_ui_version}"
+    implementation "androidx.compose.foundation:foundation:${rootProject.ext.compose_ui_version}"
+    implementation "androidx.compose.runtime:runtime-livedata:${rootProject.ext.livedata_version}"
 
+    // ============================================================================
+    // MATERIAL 3
+    // ============================================================================
+    implementation "androidx.compose.material3:material3:${rootProject.ext.material3_version}"
+    implementation(platform("androidx.compose:compose-bom:2025.11.01"))
+    implementation("androidx.compose.material:material-icons-core:${rootProject.ext.material3_version}")
+    implementation("androidx.compose.material:material-icons-extended:${rootProject.ext.material3_version}")
+    implementation "androidx.compose.material3:material3-window-size-class:${rootProject.ext.material3_version}"
 
-    implementation 'com.google.code.gson:gson:2.9.0'
-    implementation("androidx.security:security-crypto:1.0.0")
+    // ============================================================================
+    // NAVIGATION
+    // ============================================================================
+    implementation "androidx.navigation:navigation-compose:${rootProject.ext.nav_version}"
+    implementation "androidx.fragment:fragment-ktx:${rootProject.ext.fragment_version}"
+    implementation "androidx.hilt:hilt-navigation-compose:${rootProject.ext.hilt_navigation_compose}"
 
-    // For Identity Credential APIs
-    implementation("androidx.security:security-identity-credential:1.0.0-alpha03")
+    // ============================================================================
+    // ROOM DATABASE
+    // ============================================================================
+    implementation "androidx.room:room-runtime:${rootProject.ext.room_version}"
+    implementation "androidx.room:room-ktx:${rootProject.ext.room_version}"
+    implementation 'androidx.compose.ui:ui:1.9.5'
+    implementation 'androidx.compose.material3:material3:1.4.0'
+    //noinspection KaptUsageInsteadOfKsp
+    kapt "androidx.room:room-compiler:${rootProject.ext.room_version}"
 
-    // For App Authentication APIs
-    implementation("androidx.security:security-app-authenticator:1.0.0-alpha02")
+    // ============================================================================
+    // HILT DEPENDENCY INJECTION
+    // ============================================================================
+    implementation "com.google.dagger:hilt-android:${rootProject.ext.hilt_version}"
+    kapt "com.google.dagger:hilt-android-compiler:${rootProject.ext.hilt_version}"
 
-    // For App Authentication API testing
-    androidTestImplementation("androidx.security:security-app-authenticator:1.0.0-alpha02")
+    // ============================================================================
+    // CAMERA
+    // ============================================================================
+    implementation "androidx.camera:camera-core:${rootProject.ext.camera_version}"
+    implementation "androidx.camera:camera-camera2:${rootProject.ext.camera_version}"
+    implementation "androidx.camera:camera-lifecycle:${rootProject.ext.camera_version}"
+    implementation "androidx.camera:camera-view:${rootProject.ext.camera_version}"
 
-    implementation "androidx.compose.foundation:foundation:1.4.3"
+    // ============================================================================
+    // ZXING QR CODE
+    // ============================================================================
+    implementation "com.google.zxing:core:${rootProject.ext.zxing_core_version}"
+    implementation "com.journeyapps:zxing-android-embedded:${rootProject.ext.zxing_android_version}"
 
-    implementation "com.google.accompanist:accompanist-pager:0.23.1"
-    implementation "com.google.accompanist:accompanist-pager-indicators:0.23.1"
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
-    implementation 'androidx.datastore:datastore-preferences-rxjava2:1.0.0'
-    implementation 'androidx.datastore:datastore-preferences-rxjava3:1.0.0'
+    // ============================================================================
+    // UTILITIES
+    // ============================================================================
+    implementation "com.jakewharton.timber:timber:${rootProject.ext.timber_version}"
+    implementation "com.google.code.gson:gson:${rootProject.ext.gson_version}"
+    implementation "commons-codec:commons-codec:${rootProject.ext.commons_codec_version}"
 
-    //base32
-    implementation "commons-codec:commons-codec:$commons_codec_version"
-    implementation "androidx.compose.material3:material3:$material3_version"
-    implementation "androidx.compose.material3:material3-window-size-class:$material3_version"
-    //viewmodel
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$viewmodel_version"
-    //compose navigation
+    // ============================================================================
+    // SERIALIZATION
+    // ============================================================================
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
 
-    implementation "com.google.accompanist:accompanist-navigation-animation:$accompanist_version"
-    //Hilt
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-    implementation("com.google.dagger:hilt-android:2.46.1")
-    implementation 'androidx.biometric:biometric-ktx:1.2.0-alpha05'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
-    //room
-    implementation "androidx.room:room-runtime:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
-    implementation "androidx.compose.runtime:runtime-livedata:1.4.3"
-    // CameraX
-    implementation "androidx.camera:camera-core:$camera_version"
-    implementation "androidx.camera:camera-camera2:$camera_version"
-    implementation "androidx.camera:camera-lifecycle:$camera_version"
-    implementation "androidx.camera:camera-view:$camera_version"
-    // Zxing
-    implementation "com.google.zxing:core:3.5.0"
-    implementation "com.journeyapps:zxing-android-embedded:4.1.0"
-    //permissions
-    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
+    // ============================================================================
+    // DATA STORE
+    // ============================================================================
+    implementation 'androidx.datastore:datastore-preferences:1.2.0'
 
+    // ============================================================================
+    // SECURITY
+    // ============================================================================
+    implementation "androidx.security:security-crypto:1.1.0"
+    implementation "androidx.security:security-crypto-ktx:1.1.0"
+    implementation "androidx.security:security-app-authenticator:1.0.0"
+    implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
+    implementation "com.google.crypto.tink:tink-android:1.10.0"
 
-    implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
-    implementation 'androidx.activity:activity-compose:1.7.2'
-    implementation "androidx.compose.ui:ui:$compose_ui_version"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_ui_version"
-    implementation 'androidx.compose.material:material:1.4.3'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+    // ============================================================================
+    // TESTING
+    // ============================================================================
+    testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.androidx_test_ext_version}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.espresso_version}"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:${rootProject.ext.compose_ui_version}"
+    debugImplementation "androidx.compose.ui:ui-tooling:${rootProject.ext.compose_ui_version}"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:${rootProject.ext.compose_ui_test_version}"
 }
