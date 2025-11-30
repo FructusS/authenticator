@@ -1,107 +1,151 @@
 package com.example.itplaneta.ui.screens.account
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.itplaneta.R
+import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
-import com.example.itplaneta.core.otp.parser.Base32
+import com.example.itplaneta.core.utils.Result
+import com.example.itplaneta.data.repository.AccountRepository
 import com.example.itplaneta.data.sources.Account
-import com.example.itplaneta.domain.AccountRepository
-import com.example.itplaneta.domain.RawAccount
+import com.example.itplaneta.domain.AccountInputDto
+import com.example.itplaneta.domain.validation.AccountValidator
+import com.example.itplaneta.domain.validation.FieldType
+import com.example.itplaneta.ui.base.BaseViewModel
+import com.example.itplaneta.ui.base.UiEvent
+import com.example.itplaneta.ui.navigation.AccountDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
-) : ViewModel() {
+    private val accountValidator: AccountValidator,
+    savedStateHandle: SavedStateHandle
+) : BaseViewModel<AccountUiState, UiEvent>() {
 
-    private val base32 = Base32()
+    override val _uiState = MutableStateFlow(AccountUiState())
 
-    private val _state = MutableStateFlow(AccountUiState())
-    val state = _state.asStateFlow()
+    private val currentAccount: AccountInputDto
+        get() = uiState.value.currentAccount
 
 
-    private val account
-        get() = _state.value.account
+    private val accountId: Int = savedStateHandle[AccountDestination.accountIdArg] ?: -1
+    val isEditMode: Boolean get() = accountId != -1
 
-    fun updateUiState(account: RawAccount) {
-        _state.value = _state.value.copy(account = account)
+    init {
+        if (isEditMode) {
+            loadAccountById(accountId)
+        }
     }
 
-    private fun validateInput(): Boolean {
-        _state.value = _state.value.copy(errorType = ErrorType.Nothing)
-        if (account.label.isBlank()) {
-            _state.value = _state.value.copy(errorType = ErrorType.LabelError, errorText = R.string.fill_the_label)
-            return false
-        }
+    /**
+     * Add new account to database
+     */
+    fun saveAccount() {
+        viewModelScope.launch {
+            // set loading
+            updateState { it.copy(screenState = AccountScreenState.Loading) }
 
-        if (account.secret.isBlank() || account.secret.replace(" ","").length < 16){
-            _state.value = _state.value.copy(errorType = ErrorType.SecretError, errorText = R.string.secret_key_to_short)
-            return false
-        }
-        if (account.tokenType == OtpType.Hotp){
-            if(account.counter.toLongOrNull() == null){
-                _state.value = _state.value.copy(errorType = ErrorType.CounterError, errorText = R.string.fill_the_counter)
-                return false
+            val errors = accountValidator.validate(currentAccount)
+            if (errors.values.any { it != null }) {
+                updateState { it.copy(errors = errors, screenState = AccountScreenState.Idle) }
+                return@launch
+            }
+
+            when (val result = accountRepository.addAccount(currentAccount.toAccount())) {
+                is Result.Success -> {
+                    updateState { it.copy(screenState = AccountScreenState.Success) }
+                    postEvent(UiEvent.NavigateBack)
+                }
+
+                is Result.Error -> {
+                    updateState {
+                        it.copy(
+                            screenState = AccountScreenState.Error(
+                                result.message ?: "Failed"
+                            )
+                        )
+                    }
+                }
+
+                is Result.Loading -> { /* ignored */
+                }
             }
         }
+    }
 
-        else{
-            if (account.period.toIntOrNull() == null) {
-                _state.value = _state.value.copy(errorType = ErrorType.PeriodError, errorText = R.string.incorrect_period)
-                return false
+    /**
+     * Update current account from ui
+     */
+    fun updateAccountInputDto(field: FieldType, newValue: String) {
+        viewModelScope.launch {
+            val updatedAccount = when (field) {
+                FieldType.LABEL -> currentAccount.copy(label = newValue)
+                FieldType.SECRET -> currentAccount.copy(secret = newValue)
+                FieldType.COUNTER -> currentAccount.copy(counter = newValue)
+                FieldType.PERIOD -> currentAccount.copy(period = newValue)
+                FieldType.DIGITS -> currentAccount.copy(digits = newValue)
+                FieldType.ISSUER -> currentAccount.copy(issuer = newValue)
             }
-            if (account.period.toInt() < 1 && account.period.toInt() > Int.MAX_VALUE / 1000){
-                _state.value = _state.value.copy(errorType = ErrorType.PeriodError, errorText = R.string.incorrect_period)
-                return false
+
+            val fieldError = accountValidator.validateField(field, updatedAccount)
+            updateState { state ->
+                val newErrors = state.errors.toMutableMap()
+                if (fieldError == null) newErrors.remove(field) else newErrors[field] = fieldError
+                state.copy(
+                    currentAccount = updatedAccount, errors = newErrors
+                )
             }
         }
-
-        if (account.digits.toIntOrNull() == null) {
-            _state.value = _state.value.copy(errorType = ErrorType.DigitsError, errorText = R.string.incorrect_digits)
-            return false
-        }
-        if (account.digits.toInt() < 6 || account.digits.toInt() > 10) {
-            _state.value = _state.value.copy(errorType = ErrorType.DigitsError, errorText = R.string.incorrect_digits)
-            return false
-        }
-        try {
-            base32.decodeBase32(account.secret.uppercase())
-        } catch (ex: Exception) {
-            _state.value = _state.value.copy(errorType = ErrorType.SecretError, errorText = R.string.secret_can_only_containt_base32chars)
-            return false
-        }
-        return true
     }
 
+    /**
+     * Load account by ID for editing
+     */
+    fun loadAccountById(accountId: Int) {
+        viewModelScope.launch {
 
-    suspend fun addAccount(navigateBack: () -> Unit) {
+            updateState { it.copy(screenState = AccountScreenState.Loading) }
 
-        if (validateInput()) {
-            accountRepository.addAccount(
-                account.toAccount()
-            )
-            navigateBack()
-        }
-    }
+            when (val result = accountRepository.getAccountById(accountId)) {
+                is Result.Success -> {
+                    updateState {
+                        it.copy(
+                            currentAccount = result.data.toRawAccount(),
+                            screenState = AccountScreenState.Idle
+                        )
+                    }
+                }
 
+                is Result.Error -> {
+                    updateState {
+                        it.copy(
+                            screenState = AccountScreenState.Error("")
+                        )
+                    }
+                    Timber.e("Error loading account: ${result.message}")
+                }
 
-    suspend fun updateAccount(navigateBack: () -> Unit) {
-        if (validateInput()) {
-            accountRepository.updateAccount(
-                account.toAccount()
-            )
-            navigateBack()
+                is Result.Loading -> {}
+            }
         }
     }
 
-    fun getAccountById(id: Int): RawAccount = accountRepository.getAccountById(id).toRawAccount()
+    /**
+     * Clear error message
+     */
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(
+            screenState = AccountScreenState.Idle
+        )
+    }
 
-    private fun Account.toRawAccount(): RawAccount = RawAccount(
+// Private conversion functions
+
+    private fun Account.toRawAccount(): AccountInputDto = AccountInputDto(
         id = id,
         digits = digits.toString(),
         counter = counter.toString(),
@@ -110,10 +154,10 @@ class AccountViewModel @Inject constructor(
         issuer = issuer,
         period = period.toString(),
         algorithm = algorithm,
-        tokenType = tokenType,
+        tokenType = tokenType
     )
 
-    private fun RawAccount.toAccount(): Account = Account(
+    private fun AccountInputDto.toAccount(): Account = Account(
         id = id,
         digits = digits.toInt(),
         counter = counter.toLong(),
@@ -125,10 +169,17 @@ class AccountViewModel @Inject constructor(
         tokenType = tokenType
     )
 
-    fun updateUiStateByAccountId(accountId: Int) {
-        viewModelScope.launch {
-            updateUiState(accountRepository.getAccountById(accountId).toRawAccount())
+    fun updateOtpTypeAccount(otpType: OtpType) {
+        updateState { state ->
+            val updatedAccount = state.currentAccount.copy(tokenType = otpType)
+            state.copy(currentAccount = updatedAccount)
         }
     }
 
+    fun updateAlgorithmAccount(algorithm: OtpAlgorithm) {
+        updateState { state ->
+            val updatedAccount = state.currentAccount.copy(algorithm = algorithm)
+            state.copy(currentAccount = updatedAccount)
+        }
+    }
 }

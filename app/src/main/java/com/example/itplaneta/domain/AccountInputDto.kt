@@ -3,7 +3,7 @@ package com.example.itplaneta.domain
 import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
 
-data class RawAccount(
+data class AccountInputDto(
     val id: Int = 0,
     val issuer: String? = "",
     val label: String = "",
@@ -13,5 +13,4 @@ data class RawAccount(
     val digits: String = "6",
     val counter: String = "0",
     val period: String = "30"
-
 )

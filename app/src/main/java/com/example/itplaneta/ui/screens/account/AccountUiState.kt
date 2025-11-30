@@ -1,23 +1,26 @@
 package com.example.itplaneta.ui.screens.account
 
-import androidx.annotation.StringRes
-import com.example.itplaneta.R
-import com.example.itplaneta.domain.RawAccount
+import com.example.itplaneta.domain.AccountInputDto
+import com.example.itplaneta.domain.validation.AccountFieldError
+import com.example.itplaneta.domain.validation.FieldType
 import com.example.itplaneta.ui.base.UiState
 
-data class AccountUiState(
-    var account: RawAccount = RawAccount(),
-    val errorType: ErrorType = ErrorType.Nothing,
-    @StringRes val errorText: Int = R.string.app_name,
-    val isEntryValid: Boolean = false
-) : UiState
-
-enum class ErrorType {
-    LabelError,
-    SecretError,
-    DigitsError,
-    CounterError,
-    PeriodError,
-    Nothing,
-    IssuerError
+/**
+ * Sealed class for account screen states
+ * Manages loading, success, and error states
+ */
+sealed class AccountScreenState : UiState {
+    object Idle : AccountScreenState()
+    object Loading : AccountScreenState()
+    object Success : AccountScreenState()
+    data class Error(val message: String) : AccountScreenState()
 }
+
+/**
+ * UI state for account form
+ */
+data class AccountUiState(
+    val currentAccount: AccountInputDto = AccountInputDto(),
+    val screenState: AccountScreenState = AccountScreenState.Idle,
+    val errors: Map<FieldType, AccountFieldError?> = emptyMap(),
+) : UiState
