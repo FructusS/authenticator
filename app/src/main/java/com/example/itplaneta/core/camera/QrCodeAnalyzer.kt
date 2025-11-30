@@ -3,28 +3,87 @@ package com.example.itplaneta.core.camera
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.zxing.NotFoundException
+import timber.log.Timber
 import java.nio.ByteBuffer
-
-
+import com.example.itplaneta.core.utils.Result
+/**
+ * Анализатор, который извлекает Y-плоскость из ImageProxy и передаёт её в ZxingDecoder.
+ *
+ * - onSuccess вызывается при успешном декодировании (com.google.zxing.Result).
+ * - onFail вызывается, когда ZXing не нашёл код (NotFoundException).
+ *
+ * Важно: analyzer закрывает imageProxy (image.use { ... }), поэтому вызывающая сторона
+ * не должна закрывать imageProxy повторно.
+ */
 class QrCodeAnalyzer(
-    private inline val onSuccess: (com.google.zxing.Result) -> Unit,
-    private inline val onFail: (NotFoundException) -> Unit
+    private val onSuccess: (String) -> Unit,
+    private val onFail: (NotFoundException) -> Unit
 ) : ImageAnalysis.Analyzer {
 
     override fun analyze(image: ImageProxy) {
+        // ImageProxy.use() вызывает close() в конце блока — гарантируем закрытие.
         image.use { imageProxy ->
-            val data = imageProxy.planes[0].buffer.toByteArray()
+            try {
+                val rotation = imageProxy.imageInfo.rotationDegrees
+                // Берём только Y-плоскость. Для большинства QR-детекторов (luminance) этого достаточно.
+                val yPlane = imageProxy.planes.firstOrNull()
+                if (yPlane == null) {
+                    Timber.w("QrCodeAnalyzer: no planes found")
+                    return
+                }
 
-            ZxingDecoder.decodeYuvLuminanceSource(
-                data = data,
-                dataWidth = imageProxy.width,
-                dataHeight = imageProxy.height,
-                onSuccess = onSuccess,
-                onError = onFail
-            )
+                val data = yPlane.buffer.toByteArray()
+                var width = imageProxy.width
+                var height = imageProxy.height
+                var processedData = data
 
-        }
+                // Если камера отдала изображение с поворотом 90/270, необходимо повернуть Y-плоскость,
+                // иначе ZXing может не распознать QR.
+                // Note: для более корректной работы с NV21/YUV_420_888 можно учитывать stride, но
+                // здесь мы предполагаем, что Y-плоскость упакована построчно и stride == width.
+                if (rotation == 90 || rotation == 270) {
+                    processedData = rotateYPlane90or270(data, width, height, rotation)
+                    // swap width/height для передачи в декодер
+                    val tmp = width
+                    width = height
+                    height = tmp
+                }
+
+                // Вызов вашего декодера (адаптируйте имя/параметры под вашу реализацию)
+                ZxingDecoder.decodeYuvLuminanceSource(
+                    data = processedData,
+                    dataWidth = width,
+                    dataHeight = height,
+                    onSuccess = { result ->
+                        try {
+                            onSuccess(result.text)
+                        } catch (e: Throwable) {
+                            Timber.e(e, "onSuccess handler failed")
+                        }
+                    },
+                    onError = { notFoundEx ->
+                        try {
+                            onFail(notFoundEx)
+                        } catch (e: Throwable) {
+                            Timber.e(e, "onFail handler failed")
+                        }
+                    }
+                )
+            } catch (nf: NotFoundException) {
+                // Если Zxing выбросил NotFoundException напрямую
+                try {
+                    onFail(nf)
+                } catch (e: Throwable) {
+                    Timber.e(e, "onFail handler failed")
+                }
+            } catch (e: Exception) {
+                // Общий catch — логируем, но не пробрасываем, чтобы не ломать поток камеры
+                Timber.e(e, "QrCodeAnalyzer failed to analyze frame")
+            }
+        } // imageProxy.close() вызовется автоматически здесь
     }
+
+    // --- Helpers ---
 
     private fun ByteBuffer.toByteArray(): ByteArray {
         rewind()
@@ -33,5 +92,44 @@ class QrCodeAnalyzer(
         return bytes
     }
 
+    /**
+     * Поворачивает Y-плоскость на 90 или 270 градусов (clockwise).
+     *
+     * Примечание: это упрощённый поворот только Y-плоскости. Для корректной обработки stride/rowPadding
+     * и UV-плоскостей понадобилась бы более сложная логика; здесь предполагается, что stride == width.
+     */
+    private fun rotateYPlane90or270(input: ByteArray, width: Int, height: Int, rotationDegrees: Int): ByteArray {
+        if (rotationDegrees != 90 && rotationDegrees != 270) return input
+        val output = ByteArray(input.size)
 
+        if (rotationDegrees == 90) {
+            // Rotate 90° clockwise
+            // output[x * height + (height - y - 1)] = input[y * width + x]
+            for (y in 0 until height) {
+                val rowOffset = y * width
+                for (x in 0 until width) {
+                    val inIndex = rowOffset + x
+                    val outIndex = x * height + (height - y - 1)
+                    if (inIndex in input.indices && outIndex in output.indices) {
+                        output[outIndex] = input[inIndex]
+                    }
+                }
+            }
+        } else {
+            // rotationDegrees == 270 -> Rotate 270° clockwise (or 90° counter-clockwise)
+            // output[(width - x - 1) * height + y] = input[y * width + x]
+            for (y in 0 until height) {
+                val rowOffset = y * width
+                for (x in 0 until width) {
+                    val inIndex = rowOffset + x
+                    val outIndex = (width - x - 1) * height + y
+                    if (inIndex in input.indices && outIndex in output.indices) {
+                        output[outIndex] = input[inIndex]
+                    }
+                }
+            }
+        }
+
+        return output
+    }
 }
