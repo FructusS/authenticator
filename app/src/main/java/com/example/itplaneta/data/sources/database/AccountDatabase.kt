@@ -4,11 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.itplaneta.data.sources.Account
 
-@Database(entities = [Account::class], version = 3)
+@Database(entities = [Account::class], version = 3, exportSchema = true)
 abstract class AccountDatabase : RoomDatabase() {
     abstract fun accountDao(): AccountDao
 
@@ -18,18 +16,13 @@ abstract class AccountDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AccountDatabase {
             return Instance ?: synchronized(this) {
-                Room.databaseBuilder(context, AccountDatabase::class.java, "AccountDatabase")
-                    .fallbackToDestructiveMigration()
-                    .allowMainThreadQueries()
-                    .build()
-                    .also { Instance = it }
-            }
-        }
-    }
+                val instance = Room.databaseBuilder(
+                    context.applicationContext, AccountDatabase::class.java, "AccountDatabase"
+                ).build()
 
-    val MIGRATION_2_3: Migration = object : Migration(2, 3) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("delete from accounts")
+                Instance = instance
+                instance
+            }
         }
     }
 }
