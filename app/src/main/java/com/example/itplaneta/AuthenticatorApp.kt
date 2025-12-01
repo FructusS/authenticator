@@ -10,9 +10,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
@@ -31,6 +33,9 @@ fun AuthenticatorTopAppBar(
     actions: @Composable RowScope.() -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+    val containerColor = colorScheme.surfaceColorAtElevation(3.dp)
+
     TopAppBar(
         title = title,
         navigationIcon = {
@@ -47,7 +52,10 @@ fun AuthenticatorTopAppBar(
         modifier = modifier.fillMaxWidth(),
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = containerColor,
+            titleContentColor = colorScheme.onSurface,
+            navigationIconContentColor = colorScheme.onSurface,
+            actionIconContentColor = colorScheme.onSurface
         )
     )
 }
