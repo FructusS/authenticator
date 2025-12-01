@@ -1,5 +1,6 @@
 package com.example.itplaneta
 
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -29,16 +30,15 @@ fun AuthenticatorNavHost(
     )
 
     NavHost(
-        modifier = modifier, navController = navController, startDestination = startDestination
+        modifier = modifier,
+        navController = navController,
+        startDestination = startDestination,
     ) {
         composable(MainDestination.route) {
             MainScreen(
                 navigateToSettings = { navController.navigate(SettingsDestination.route) },
                 navigateToQrScanner = { navController.navigate(QrScannerDestination.route) },
-                navigateToAddAccount = {
-                    navController.navigate(AccountDestination.createRoute(null))
-                },
-                navigateToEditAccount = { accountId ->
+                navigateToAccount = { accountId ->
                     navController.navigate(AccountDestination.createRoute(accountId)) {
                         launchSingleTop = true
                     }
@@ -49,10 +49,11 @@ fun AuthenticatorNavHost(
 
         composable(
             route = AccountDestination.routeWithArgs, arguments = listOf(
-            navArgument(AccountDestination.accountIdArg) {
-                type = NavType.IntType
-                defaultValue = -1
-            })) { backStackEntry ->
+                navArgument(AccountDestination.accountIdArg) {
+                    type = NavType.IntType
+                    defaultValue = -1
+                })
+        ) { backStackEntry ->
             val canNavigateBack =
                 navController.previousBackStackEntry != null && navController.currentDestination?.route !in topLevelRoutes
 
