@@ -12,8 +12,8 @@
     <string name="issuer_account">Платформа аккаунта</string>
     <string name="account">аккаунт</string>
     <string name="label_account">Название аккаунта</string>
-    <string name="secret">Ключ</string>
-    <string name="secret_key">Ключ</string>
+    <string name="secret">Секретный ключ</string>
+    <string name="secret_key">Секретный ключ</string>
     <string name="otp_type">Тип</string>
     <string name="otp_algorithm">Алгоритм</string>
     <string name="length_otp_code">Длина кода</string>
@@ -51,7 +51,7 @@
     <string name="action_confirmation">Подтверждение действия</string>
     <string name="you_want_delete_selected_item">Вы действительно хотите удалить выбранный элемент?</string>
     <string name="delete">Удалить</string>
-    <string name="fail_scan_qr_code">Не удалось отсканировать QR-код</string>
+    <string name="fail_scan_qr_code">Не удалось распознать QR-код</string>
     <string name="error_secret_empty">Секретный ключ не должен быть пустым</string>
     <string name="error_secret_invalid">Секретный ключ недействителен или имеет неверный формат</string>
 
@@ -64,6 +64,32 @@
     <string name="error_period_invalid">Период должен быть в диапазоне от 1 до 2147483 секунд</string>
     <string name="error_digits_invalid">Длина кода должна быть от 1 до 9</string>
 
+    <string name="unsaved_changes">Несохранённые изменения</string>
+    <string name="unsaved_changes_message">У Вас есть несохранённые изменения. Сохранить их?</string>
+    <string name="discard">Отменить</string>
+    <string name="error">Ошибка</string>
+    <string name="secret_change_warning">Если Вы измените секретный ключ, ранее привязанные сервисы могут перестать принимать Ваш код.</string>
+
+    <string name="save_accounts_desc">Экспорт всех аккаунтов аутентификатора в зашифрованный файл резервной копии.</string>
+    <string name="load_accounts_desc">Импорт аккаунтов из зашифрованного файла резервной копии. Существующие записи могут быть обновлены или продублированы.</string>
+
+    <string name="backup_saved_successfully">Резервная копия сохранена (%1$d аккаунтов)</string>
+    <string name="backup_restored_successfully">Восстановлено %1$d аккаунтов</string>
+    <string name="backup_error_file_not_found">Файл не найден</string>
+    <string name="backup_error_io_save">Не удалось сохранить резервную копию</string>
+    <string name="backup_error_io_read">Не удалось прочитать резервную копию</string>
+    <string name="backup_error_empty">Файл резервной копии пуст или повреждён</string>
+    <string name="backup_error_unexpected">Неожиданная ошибка при работе с резервной копией</string>
+
+    <string name="camera_permission_title">Доступ к камере</string>
+    <string name="camera_permission_rationale">
+    Приложению нужен доступ к камере для сканирования QR-кодов.</string>
+    <string name="allow">Разрешить</string>
+    <string name="requesting_camera_permission">Запрос разрешения на доступ к камере…</string>
+    <string name="camera_error">Ошибка камеры</string>
+
+    <string name="qr_hint_title">Наведите камеру на QR-код</string>
+    <string name="qr_hint_subtitle">Разместите код в рамке, сканирование начнётся автоматически</string>
 
     <string-array name="theme_app">
         <item>Темная тема</item>
