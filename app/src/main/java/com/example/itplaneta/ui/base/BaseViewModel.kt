@@ -33,12 +33,6 @@ abstract class BaseViewModel<State : Any, Event : Any> : ViewModel() {
     // Public read-only SharedFlow for UI to collect
     val uiEvent: SharedFlow<Event> get() = _uiEvent.asSharedFlow()
 
-    // Helper: update state atomically
-    protected fun setState(reducer: State.() -> State) {
-        // Use viewModelScope to avoid accidental blocking; update happens synchronously but safe to call from coroutines
-        _uiState.value = _uiState.value.reducer()
-    }
-
     // Helper: update state using current value (safer style)
     protected fun updateState(update: (State) -> State) {
         _uiState.value = update(_uiState.value)
@@ -49,8 +43,6 @@ abstract class BaseViewModel<State : Any, Event : Any> : ViewModel() {
         _uiEvent.emit(event)
     }
 
-    // Try emit (non-suspending) — returns true if emitted
-    protected fun tryEmitEvent(event: Event): Boolean = _uiEvent.tryEmit(event)
 
     // Convenience wrapper to emit from non-suspend context within ViewModel
     protected fun postEvent(event: Event) {
