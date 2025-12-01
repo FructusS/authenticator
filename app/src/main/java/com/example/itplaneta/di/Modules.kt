@@ -1,14 +1,20 @@
 package com.example.itplaneta.di
 
 import android.content.Context
-import com.example.itplaneta.core.otp.OtpCodeManager
-import com.example.itplaneta.core.otp.models.OtpGenerator
-import com.example.itplaneta.core.otp.parser.Base32
+import com.example.itplaneta.data.QrCodeAnalyzerFactoryImpl
+import com.example.itplaneta.data.backup.AccountBackupManager
 import com.example.itplaneta.data.repository.AccountRepository
+import com.example.itplaneta.data.backup.BackupRepository
 import com.example.itplaneta.data.sources.database.AccountDao
 import com.example.itplaneta.data.sources.database.AccountDatabase
+import com.example.itplaneta.domain.IAccountBackupManager
 import com.example.itplaneta.domain.IAccountRepository
-import com.example.itplaneta.domain.validation.AccountValidator
+import com.example.itplaneta.domain.IBackupRepository
+import com.example.itplaneta.domain.QrCodeAnalyzerFactory
+import com.google.crypto.tink.Aead
+import com.google.crypto.tink.aead.AeadKeyTemplates
+import com.google.crypto.tink.config.TinkConfig
+import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -40,16 +46,43 @@ interface RepositoryModule {
     fun provideAccountRepository(
         impl: AccountRepository
     ): IAccountRepository
+    @Binds
+    @Singleton
+    fun provideBackupRepository(
+        impl: BackupRepository
+    ): IBackupRepository
+
+    @Binds
+    @Singleton
+    fun provideBackupAccountManager(
+        impl: AccountBackupManager
+    ): IAccountBackupManager
 }
 
 @Module
 @InstallIn(SingletonComponent::class)
-class ValidationModule {
+object CryptoModule {
+
+    private const val TINK_PREF_FILE = "tink_keyset_prefs"
+    private const val TINK_PREF_KEY = "tink_keyset"
+    private const val MASTER_KEY_ALIAS = "backup_master_key"
+    private const val MASTER_KEY_URI = "android-keystore://$MASTER_KEY_ALIAS"
+
     @Provides
-    fun provideAccountValidator(base32: Base32): AccountValidator {
-        return AccountValidator(base32)
+    @Singleton
+    fun provideAead(@ApplicationContext context: Context): Aead {
+        TinkConfig.register()
+
+        val manager = AndroidKeysetManager.Builder()
+            .withSharedPref(context, TINK_PREF_KEY, TINK_PREF_FILE)
+            .withKeyTemplate(AeadKeyTemplates.AES256_GCM)
+            .withMasterKeyUri(MASTER_KEY_URI)
+            .build()
+
+        return manager.keysetHandle.getPrimitive(Aead::class.java)
     }
 }
+
 
 @Module
 @InstallIn(SingletonComponent::class)
