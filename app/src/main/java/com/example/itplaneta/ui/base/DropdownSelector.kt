@@ -2,6 +2,7 @@ package com.example.itplaneta.ui.base
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -15,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 inline fun <reified T : Enum<T>> DropdownSelector(
     selectedValue: T,
@@ -27,7 +29,7 @@ inline fun <reified T : Enum<T>> DropdownSelector(
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
-        modifier = modifier.fillMaxWidth(), expanded = expanded, onExpandedChange = { !expanded }) {
+        modifier = modifier.fillMaxWidth(), expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         val fillMaxWidth = Modifier.fillMaxWidth()
         OutlinedTextField(
             modifier = fillMaxWidth.menuAnchor(
