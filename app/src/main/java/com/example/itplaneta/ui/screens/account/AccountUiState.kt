@@ -3,6 +3,7 @@ package com.example.itplaneta.ui.screens.account
 import com.example.itplaneta.domain.AccountInputDto
 import com.example.itplaneta.domain.validation.AccountFieldError
 import com.example.itplaneta.domain.validation.FieldType
+import com.example.itplaneta.ui.base.UiEvent
 import com.example.itplaneta.ui.base.UiState
 
 /**
@@ -13,6 +14,7 @@ sealed class AccountScreenState : UiState {
     object Idle : AccountScreenState()
     object Loading : AccountScreenState()
     object Success : AccountScreenState()
+
     data class Error(val message: String) : AccountScreenState()
 }
 
@@ -21,6 +23,15 @@ sealed class AccountScreenState : UiState {
  */
 data class AccountUiState(
     val currentAccount: AccountInputDto = AccountInputDto(),
+    val originalAccount: AccountInputDto = AccountInputDto(),
     val screenState: AccountScreenState = AccountScreenState.Idle,
     val errors: Map<FieldType, AccountFieldError?> = emptyMap(),
-) : UiState
+    val showUnsavedChangesDialog: Boolean = false
+) : UiState {
+    val hasUnsavedChanges: Boolean
+        get() = currentAccount != originalAccount && screenState == AccountScreenState.Idle
+
+    val isSecretChanged: Boolean
+        get() = currentAccount.secret != originalAccount.secret
+}
+

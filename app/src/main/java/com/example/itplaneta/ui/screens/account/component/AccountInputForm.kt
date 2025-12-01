@@ -43,13 +43,13 @@ fun AccountInputForm(
         val account = state.currentAccount
         val errors = state.errors
 
-        OtpIssuer(account.issuer, onValueChange = { issuer ->
+        OtpIssuer(modifier, account.issuer, onValueChange = { issuer ->
             viewModel.updateAccountInputDto(FieldType.ISSUER, issuer)
         }, error = errors[FieldType.ISSUER])
         OtpLabel(account.label, onValueChange = { label ->
             viewModel.updateAccountInputDto(FieldType.LABEL, label)
         }, error = errors[FieldType.LABEL])
-        OtpSecret(account.secret, onValueChange = { secret ->
+        OtpSecret(modifier, account.secret, onValueChange = { secret ->
             viewModel.updateAccountInputDto(FieldType.SECRET, secret)
         }, error = errors[FieldType.SECRET])
 

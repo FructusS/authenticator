@@ -20,10 +20,10 @@ import com.example.itplaneta.ui.base.BaseTextField
 
 @Composable
 fun OtpSecret(
+    modifier: Modifier = Modifier,
     secret: String,
     onValueChange: (String) -> Unit,
-    error: AccountFieldError? = null,
-    modifier: Modifier = Modifier
+    error: AccountFieldError? = null
 ) {
 
     var isSecretVisible by rememberSaveable { mutableStateOf(false) }
@@ -41,7 +41,7 @@ fun OtpSecret(
             )
         },
         trailingIcon = {
-            IconButton(onClick = { !isSecretVisible }) {
+            IconButton(onClick = { isSecretVisible = !isSecretVisible }) {
                 Icon(
                     painter = painterResource(
                         id = if (isSecretVisible) {

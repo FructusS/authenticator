@@ -12,10 +12,10 @@ import com.example.itplaneta.ui.base.BaseTextField
 
 @Composable
 fun OtpIssuer(
+    modifier: Modifier = Modifier,
     issuer: String?,
     onValueChange: (String) -> Unit,
     error: AccountFieldError? = null,
-    modifier: Modifier = Modifier
 ) {
     BaseTextField(
         value = issuer.orEmpty(),
