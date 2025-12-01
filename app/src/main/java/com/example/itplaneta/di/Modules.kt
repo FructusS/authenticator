@@ -53,9 +53,10 @@ class ValidationModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-class OtpModule {
-    @Provides
-    fun provideOtpCodeService(otpGenerator: OtpGenerator) : OtpCodeManager {
-        return OtpCodeManager(otpGenerator)
-    }
+interface CameraModule {
+
+    @Binds
+    fun bindQrCodeAnalyzerFactory(
+        impl: QrCodeAnalyzerFactoryImpl
+    ): QrCodeAnalyzerFactory
 }
