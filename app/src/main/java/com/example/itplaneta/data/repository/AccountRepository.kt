@@ -1,6 +1,7 @@
 package com.example.itplaneta.data.repository
 
 import com.example.itplaneta.core.utils.Result
+import com.example.itplaneta.data.backup.BackupMessage
 import com.example.itplaneta.data.sources.Account
 import com.example.itplaneta.data.sources.database.AccountDao
 import com.example.itplaneta.domain.IAccountRepository
@@ -10,11 +11,13 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
+
+typealias AccountResult<T> = Result<T, String>
 class AccountRepository @Inject constructor(
     private val accountDao: AccountDao
 ) : IAccountRepository {
 
-    override suspend fun addAccount(newAccount: Account): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun addAccount(newAccount: Account): AccountResult<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
             accountDao.addAccount(newAccount)
             Timber.d("Account added: ${newAccount.label}")
@@ -25,7 +28,7 @@ class AccountRepository @Inject constructor(
         }
     }
 
-    override suspend fun updateAccount(account: Account): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun updateAccount(account: Account): AccountResult<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
             accountDao.updateAccount(account)
             Timber.d("Account updated: ${account.label}")
@@ -38,7 +41,7 @@ class AccountRepository @Inject constructor(
 
     override fun getAccounts(): Flow<List<Account>> = accountDao.getAllAccountsFlow()
 
-    override suspend fun deleteAccount(account: Account): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun deleteAccount(account: Account): AccountResult<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
             accountDao.deleteAccount(account)
             Timber.d("Account deleted: ${account.label}")
@@ -49,7 +52,7 @@ class AccountRepository @Inject constructor(
         }
     }
 
-    override suspend fun getAccountById(id: Int): Result<Account> = withContext(Dispatchers.IO) {
+    override suspend fun getAccountById(id: Int): AccountResult<Account> = withContext(Dispatchers.IO) {
         return@withContext try {
             val account = accountDao.getAccountById(id)
             if (account != null) {
@@ -63,7 +66,7 @@ class AccountRepository @Inject constructor(
         }
     }
 
-    override suspend fun incrementHotpCounter(account: Account): Result<Unit> {
+    override suspend fun incrementHotpCounter(account: Account): AccountResult<Unit> {
         return updateAccount(account.copy(counter = account.counter + 1))
     }
 }
