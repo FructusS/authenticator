@@ -1,18 +1,25 @@
 package com.example.itplaneta.core.utils
 
-sealed class Result<out T> {
-    data class Success<T>(val data: T) : Result<T>()
-    data class Error(val exception: Exception, val message: String? = null) : Result<Nothing>()
-    data object Loading : Result<Nothing>()
+sealed class Result<out T, out E> {
+
+    data class Success<T, E>(val data: T) : Result<T, E>()
+
+    data class Error<T, E>(
+        val exception: Exception,
+        val error: E
+    ) : Result<T, E>()
+
+    data object Loading : Result<Nothing, Nothing>()
 
     /**
      * Execute a block if the result is Success
      */
-    inline fun <R> map(transform: (T) -> R): Result<R> = when (this) {
-        is Success -> Success(transform(data))
-        is Error -> Error(exception, message)
+    inline fun <R> map(transform: (T) -> R): Result<R, E> = when (this) {
+        is Success -> Success<R, E>(transform(data))
+        is Error -> Error<R, E>(exception, error)
         Loading -> Loading
     }
+
 
     /**
      * Get data or null
@@ -23,17 +30,20 @@ sealed class Result<out T> {
      * Get exception or null
      */
     fun exceptionOrNull(): Exception? = (this as? Error)?.exception
+
+
+    fun errorOrNull(): E? = (this as? Error)?.error
 }
 
 /**
  * Extension to fold result handling
  */
-inline fun <T, R> Result<T>.fold(
+inline fun <T, E, R> Result<T, E>.fold(
     onSuccess: (T) -> R,
-    onError: (Exception, String?) -> R,
+    onError: (Exception, E) -> R,
     onLoading: () -> R = { throw UnsupportedOperationException() }
 ): R = when (this) {
     is Result.Success -> onSuccess(data)
-    is Result.Error -> onError(exception, message)
+    is Result.Error -> onError(exception, error)
     is Result.Loading -> onLoading()
 }
