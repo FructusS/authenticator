@@ -20,12 +20,17 @@ class QrCodeAnalyzer(
     private val onFail: (NotFoundException) -> Unit
 ) : ImageAnalysis.Analyzer {
 
+    @Volatile
+    private var handled = false
+
     override fun analyze(image: ImageProxy) {
-        // ImageProxy.use() вызывает close() в конце блока — гарантируем закрытие.
+        if (handled) {
+            image.close()
+            return
+        }
         image.use { imageProxy ->
             try {
                 val rotation = imageProxy.imageInfo.rotationDegrees
-                // Берём только Y-плоскость. Для большинства QR-детекторов (luminance) этого достаточно.
                 val yPlane = imageProxy.planes.firstOrNull()
                 if (yPlane == null) {
                     Timber.w("QrCodeAnalyzer: no planes found")
@@ -37,28 +42,25 @@ class QrCodeAnalyzer(
                 var height = imageProxy.height
                 var processedData = data
 
-                // Если камера отдала изображение с поворотом 90/270, необходимо повернуть Y-плоскость,
-                // иначе ZXing может не распознать QR.
-                // Note: для более корректной работы с NV21/YUV_420_888 можно учитывать stride, но
-                // здесь мы предполагаем, что Y-плоскость упакована построчно и stride == width.
                 if (rotation == 90 || rotation == 270) {
                     processedData = rotateYPlane90or270(data, width, height, rotation)
-                    // swap width/height для передачи в декодер
                     val tmp = width
                     width = height
                     height = tmp
                 }
 
-                // Вызов вашего декодера (адаптируйте имя/параметры под вашу реализацию)
                 ZxingDecoder.decodeYuvLuminanceSource(
                     data = processedData,
                     dataWidth = width,
                     dataHeight = height,
                     onSuccess = { result ->
-                        try {
-                            onSuccess(result.text)
-                        } catch (e: Throwable) {
-                            Timber.e(e, "onSuccess handler failed")
+                        if (!handled) {
+                            handled = true
+                            try {
+                                onSuccess(result.text)
+                            } catch (e: Throwable) {
+                                Timber.e(e, "onSuccess handler failed")
+                            }
                         }
                     },
                     onError = { notFoundEx ->
@@ -70,20 +72,16 @@ class QrCodeAnalyzer(
                     }
                 )
             } catch (nf: NotFoundException) {
-                // Если Zxing выбросил NotFoundException напрямую
                 try {
                     onFail(nf)
                 } catch (e: Throwable) {
                     Timber.e(e, "onFail handler failed")
                 }
             } catch (e: Exception) {
-                // Общий catch — логируем, но не пробрасываем, чтобы не ломать поток камеры
                 Timber.e(e, "QrCodeAnalyzer failed to analyze frame")
             }
-        } // imageProxy.close() вызовется автоматически здесь
+        }
     }
-
-    // --- Helpers ---
 
     private fun ByteBuffer.toByteArray(): ByteArray {
         rewind()
@@ -92,12 +90,6 @@ class QrCodeAnalyzer(
         return bytes
     }
 
-    /**
-     * Поворачивает Y-плоскость на 90 или 270 градусов (clockwise).
-     *
-     * Примечание: это упрощённый поворот только Y-плоскости. Для корректной обработки stride/rowPadding
-     * и UV-плоскостей понадобилась бы более сложная логика; здесь предполагается, что stride == width.
-     */
     private fun rotateYPlane90or270(input: ByteArray, width: Int, height: Int, rotationDegrees: Int): ByteArray {
         if (rotationDegrees != 90 && rotationDegrees != 270) return input
         val output = ByteArray(input.size)
