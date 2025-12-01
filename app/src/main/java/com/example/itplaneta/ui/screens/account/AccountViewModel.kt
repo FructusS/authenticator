@@ -8,6 +8,8 @@ import com.example.itplaneta.core.utils.Result
 import com.example.itplaneta.data.repository.AccountRepository
 import com.example.itplaneta.data.sources.Account
 import com.example.itplaneta.domain.AccountInputDto
+import com.example.itplaneta.domain.toAccount
+import com.example.itplaneta.domain.toAccountInputDto
 import com.example.itplaneta.domain.validation.AccountValidator
 import com.example.itplaneta.domain.validation.FieldType
 import com.example.itplaneta.ui.base.BaseViewModel
@@ -24,13 +26,12 @@ class AccountViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val accountValidator: AccountValidator,
     savedStateHandle: SavedStateHandle
-) : BaseViewModel<AccountUiState, UiEvent>() {
+) : BaseViewModel<AccountUiState, AccountUiEvent>() {
 
     override val _uiState = MutableStateFlow(AccountUiState())
 
     private val currentAccount: AccountInputDto
         get() = uiState.value.currentAccount
-
 
     private val accountId: Int = savedStateHandle[AccountDestination.accountIdArg] ?: -1
     val isEditMode: Boolean get() = accountId != -1
@@ -55,20 +56,32 @@ class AccountViewModel @Inject constructor(
                 return@launch
             }
 
-            when (val result = accountRepository.addAccount(currentAccount.toAccount())) {
+            val result = if (isEditMode) {
+                accountRepository.updateAccount(currentAccount.toAccount())
+            } else {
+                accountRepository.addAccount(currentAccount.toAccount())
+            }
+            when (result) {
                 is Result.Success -> {
-                    updateState { it.copy(screenState = AccountScreenState.Success) }
-                    postEvent(UiEvent.NavigateBack)
+                    updateState {
+                        it.copy(
+                            screenState = AccountScreenState.Success,
+                            originalAccount = currentAccount
+                        )
+                    }
+                    postEvent(AccountUiEvent.NavigateBack)
                 }
 
                 is Result.Error -> {
                     updateState {
                         it.copy(
                             screenState = AccountScreenState.Error(
-                                result.message ?: "Failed"
+                                result.error
                             )
                         )
                     }
+
+                    Timber.e("Error save account: ${result.exception}")
                 }
 
                 is Result.Loading -> { /* ignored */
@@ -112,9 +125,11 @@ class AccountViewModel @Inject constructor(
 
             when (val result = accountRepository.getAccountById(accountId)) {
                 is Result.Success -> {
+                    val accountDto = result.data.toAccountInputDto()
                     updateState {
                         it.copy(
-                            currentAccount = result.data.toRawAccount(),
+                            currentAccount = accountDto,
+                            originalAccount = accountDto,
                             screenState = AccountScreenState.Idle
                         )
                     }
@@ -123,10 +138,10 @@ class AccountViewModel @Inject constructor(
                 is Result.Error -> {
                     updateState {
                         it.copy(
-                            screenState = AccountScreenState.Error("")
+                            screenState = AccountScreenState.Error(result.error)
                         )
                     }
-                    Timber.e("Error loading account: ${result.message}")
+                    Timber.e("Error loading account: ${result.exception}")
                 }
 
                 is Result.Loading -> {}
@@ -138,36 +153,26 @@ class AccountViewModel @Inject constructor(
      * Clear error message
      */
     fun clearError() {
-        _uiState.value = _uiState.value.copy(
-            screenState = AccountScreenState.Idle
-        )
+        updateState { it.copy(screenState = AccountScreenState.Idle) }
     }
 
-// Private conversion functions
+    fun onBackPressed() {
+        if (uiState.value.hasUnsavedChanges) {
+            updateState { it.copy(showUnsavedChangesDialog = true) }
+        } else {
+            postEvent(AccountUiEvent.NavigateBack)
+        }
+    }
 
-    private fun Account.toRawAccount(): AccountInputDto = AccountInputDto(
-        id = id,
-        digits = digits.toString(),
-        counter = counter.toString(),
-        secret = secret,
-        label = label,
-        issuer = issuer,
-        period = period.toString(),
-        algorithm = algorithm,
-        tokenType = tokenType
-    )
+    fun dismissUnsavedChangesDialog() {
+        updateState { it.copy(showUnsavedChangesDialog = false) }
+    }
 
-    private fun AccountInputDto.toAccount(): Account = Account(
-        id = id,
-        digits = digits.toInt(),
-        counter = counter.toLong(),
-        secret = secret,
-        label = label,
-        issuer = issuer,
-        period = period.toInt(),
-        algorithm = algorithm,
-        tokenType = tokenType
-    )
+    fun discardChanges() {
+        updateState { it.copy(showUnsavedChangesDialog = false) }
+        postEvent(AccountUiEvent.NavigateBack)
+    }
+
 
     fun updateOtpTypeAccount(otpType: OtpType) {
         updateState { state ->

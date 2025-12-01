@@ -1,6 +1,8 @@
 package com.example.itplaneta.ui.screens.account
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,6 +22,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,12 +42,17 @@ fun AccountScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+
+    BackHandler(enabled = uiState.hasUnsavedChanges) {
+        viewModel.onBackPressed()
+    }
+
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is UiEvent.NavigateBack -> navigateBack()
-                else -> {}
+                is AccountUiEvent.NavigateBack -> navigateBack()
             }
         }
     }
@@ -58,73 +67,122 @@ fun AccountScreen(
         AuthenticatorTopAppBar(
             title = { Text(stringResource(id = titleRes)) },
             canNavigateBack = canNavigateBack,
-            navigateUp = onNavigateUp
-        )
+            navigateUp = {
+                if (uiState.hasUnsavedChanges) {
+                    viewModel.onBackPressed()
+                } else {
+                    onNavigateUp()
+                }
+            })
     }, floatingActionButton = {
-        ExtendedFloatingActionButton(
-            text = { Text(text = stringResource(id = R.string.save)) },
-            onClick = {
+        if (uiState.hasUnsavedChanges) {
+            ExtendedFloatingActionButton(
+                text = { Text(text = stringResource(id = R.string.save)) },
+                onClick = {
+                    coroutineScope.launch {
+                        viewModel.saveAccount()
+                    }
+                },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_save),
+                        contentDescription = stringResource(id = R.string.save)
+                    )
+                })
+        }
+    }, content = { paddingValues ->
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }, content = {
+            when (val screenState = uiState.screenState) {
+                is AccountScreenState.Error -> {
+                    AlertDialog(
+                        onDismissRequest = { viewModel.clearError() },
+                        title = { Text("error") },
+                        text = { Text(screenState.message) },
+                        confirmButton = {
+                            Button(onClick = { viewModel.clearError() }) {
+                                Text("ОК")
+                            }
+                        })
+                }
+
+                AccountScreenState.Idle -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                    ) {
+                        AccountInputForm(
+                            viewModel = viewModel
+                        )
+                    }
+                }
+
+                AccountScreenState.Loading -> {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                    ) {
+                        CircularProgressIndicator(
+                            Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                is AccountScreenState.Success -> {
+                }
+            }
+        })
+        if (uiState.showUnsavedChangesDialog) {
+            UnsavedChangesDialog(
+                isSecretChanged = uiState.isSecretChanged,
+                onSave = {
+                viewModel.dismissUnsavedChangesDialog()
                 coroutineScope.launch {
                     viewModel.saveAccount()
                 }
             },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_save),
-                    contentDescription = stringResource(id = R.string.save)
-
-                )
-            })
-    }, content = { paddingValues ->
-
-
-        when (val screenState = uiState.screenState) {
-            is AccountScreenState.Error -> {
-                AlertDialog(
-                    onDismissRequest = {
-                        viewModel.clearError()
-                    },
-                    title = { Text("error") },
-                    text = { Text(screenState.message) },
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                viewModel.clearError()
-                            }) {
-                            Text("ОК")
-                        }
-                    })
-            }
-
-            AccountScreenState.Idle -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                ) {
-                    AccountInputForm(
-                        viewModel = viewModel
-                    )
-                }
-            }
-
-            AccountScreenState.Loading -> {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f))
-                ) {
-                    CircularProgressIndicator(
-                        Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            is AccountScreenState.Success -> {
-                // toast success save
-                navigateBack()
-
-            }
+                onDiscard = { viewModel.discardChanges() },
+                onDismiss = { viewModel.dismissUnsavedChangesDialog() })
         }
     })
+}
+
+@Composable
+private fun UnsavedChangesDialog(
+    isSecretChanged: Boolean,
+    onSave: () -> Unit,
+    onDiscard: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(id = R.string.unsaved_changes)) },
+        text = {
+            val base = stringResource(id = R.string.unsaved_changes_message)
+            val secretWarning = if (isSecretChanged) {
+                "\n\n" + stringResource(id = R.string.secret_change_warning)
+            } else {
+                ""
+            }
+            Text(base + secretWarning)
+        },
+        confirmButton = {
+            Button(onClick = onSave) {
+                Text(stringResource(id = R.string.save))
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDiscard) {
+                Text(stringResource(id = R.string.discard))
+            }
+        }
+    )
 }

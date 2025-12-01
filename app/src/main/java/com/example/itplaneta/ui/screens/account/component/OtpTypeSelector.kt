@@ -1,4 +1,3 @@
-// ui/screens/account/component/OtpTypeSelector.kt
 package com.example.itplaneta.ui.screens.account.component
 
 import androidx.compose.runtime.Composable
