@@ -11,8 +11,8 @@ import javax.inject.Singleton
  * Constants for account validation
  */
 object AccountConstraints {
-    const val MIN_DIGITS = 1
-    const val MAX_DIGITS = 9
+    const val MIN_DIGITS = 6
+    const val MAX_DIGITS = 12
     const val MIN_SECRET_LENGTH = 16
     const val MIN_PERIOD = 1
     const val MAX_PERIOD = 2_147_483
