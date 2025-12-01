@@ -38,7 +38,7 @@ enum class AppTheme {
     Auto;
     companion object{
         fun fromOrdinal(ordinal : Int) : AppTheme {
-          return  AppTheme.values()[ordinal]
+          return  AppTheme.entries[ordinal]
         }
 
     }
