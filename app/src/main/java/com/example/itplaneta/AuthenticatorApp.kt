@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.itplaneta.ui.navigation.AuthenticatorNavHost
 
 @Composable
 fun AuthenticatorApp(
