@@ -1,6 +1,5 @@
-package com.example.itplaneta
+package com.example.itplaneta.ui.navigation
 
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -82,6 +81,7 @@ fun AuthenticatorNavHost(
             SettingsScreen(
                 onNavigateUp = navController::navigateUp,
                 onNavigateToHowItWorks = { navController.navigate(HowItWorksDestination.route) },
+                onNavigateToPin = { navController.navigate(PinDestination.createRoute(it)) },
                 canNavigateBack = canNavigateBack
             )
         }

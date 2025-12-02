@@ -1,35 +1,23 @@
 package com.example.itplaneta.ui.screens.settings
 
-import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.itplaneta.R
 import com.example.itplaneta.core.utils.Result
-import com.example.itplaneta.data.backup.BackupMessage
-import com.example.itplaneta.data.backup.BackupResult
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.domain.IAccountBackupManager
-import com.example.itplaneta.domain.IAccountRepository
+import com.example.itplaneta.data.SettingsManager
 import com.example.itplaneta.ui.base.BaseViewModel
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
+import com.example.itplaneta.ui.screens.pin.PinScenario
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.*
 import javax.inject.Inject
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsManager: SettingsManager,
-    private val backupManager: IAccountBackupManager
+    private val settingsManager: SettingsManager, private val backupManager: IAccountBackupManager
 ) : BaseViewModel<SettingsUiState, SettingsUiEvent>() {
 
 
@@ -41,7 +29,15 @@ class SettingsViewModel @Inject constructor(
                 updateState { it.copy(selectedTheme = theme) }
             }
         }
+
+        viewModelScope.launch {
+            settingsManager.isPinEnabledFlow.collect { enabled ->
+                updateState { it.copy(isPinEnabled = enabled) }
+            }
+        }
     }
+
+
     fun saveTheme(theme: AppTheme) {
         viewModelScope.launch {
             try {
@@ -64,14 +60,12 @@ class SettingsViewModel @Inject constructor(
                     val msg = result.data
                     updateState {
                         it.copy(
-                            screenState = SettingsScreenState.BackupSuccess,
-                            lastBackupMessage = msg
+                            screenState = SettingsScreenState.BackupSuccess, lastBackupMessage = msg
                         )
                     }
                     postEvent(
                         SettingsUiEvent.ShowMessage(
-                            resId = msg.resId,
-                            arg = msg.arg
+                            resId = msg.resId, arg = msg.arg
                         )
                     )
                 }
@@ -103,14 +97,12 @@ class SettingsViewModel @Inject constructor(
                     val msg = result.data
                     updateState {
                         it.copy(
-                            screenState = SettingsScreenState.BackupSuccess,
-                            lastBackupMessage = msg
+                            screenState = SettingsScreenState.BackupSuccess, lastBackupMessage = msg
                         )
                     }
-                    postEvent(
+                    emitEvent(
                         SettingsUiEvent.ShowMessage(
-                            resId = msg.resId,
-                            arg = msg.arg
+                            resId = msg.resId, arg = msg.arg
                         )
                     )
                 }
@@ -123,13 +115,20 @@ class SettingsViewModel @Inject constructor(
                             lastBackupMessage = msg
                         )
                     }
-                    postEvent(SettingsUiEvent.ShowMessage(resId = msg.resId))
+                    emitEvent(SettingsUiEvent.ShowMessage(resId = msg.resId))
                 }
 
                 Result.Loading -> {
                     updateState { it.copy(screenState = SettingsScreenState.LoadingBackup) }
                 }
             }
+        }
+    }
+
+    fun onPinCheckedChange(value: Boolean) {
+        viewModelScope.launch {
+            val mode = if (value) PinScenario.ENABLE else PinScenario.DISABLE
+            emitEvent(SettingsUiEvent.NavigateToPinScreen(mode))
         }
     }
 }

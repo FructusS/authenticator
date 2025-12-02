@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
-import com.example.itplaneta.ui.screens.settings.AppTheme
-import com.example.itplaneta.ui.screens.settings.SettingsManager
+import com.example.itplaneta.ui.theme.AppTheme
+import com.example.itplaneta.data.SettingsManager
 import com.example.itplaneta.ui.theme.AuthenticatorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
