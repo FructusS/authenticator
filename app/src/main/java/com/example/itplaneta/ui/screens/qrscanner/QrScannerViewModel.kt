@@ -3,6 +3,7 @@ package com.example.itplaneta.ui.screens.qrscanner
 import androidx.camera.core.ImageAnalysis
 import androidx.lifecycle.viewModelScope
 import com.example.itplaneta.R
+import com.example.itplaneta.core.camera.QrCodeAnalyzer
 import com.example.itplaneta.core.otp.parser.UriOtpParser
 import com.example.itplaneta.domain.IAccountRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,15 +23,28 @@ class QrScannerViewModel @Inject constructor(
     qrCodeAnalyzerFactory: QrCodeAnalyzerFactory
 ) : BaseViewModel<QrScannerUiState, QrScannerUiEvent>() {
 
+    companion object {
+        private var lastScanErrorAt: Long = 0L
+        private const val scanErrorIntervalMs = 5_000L
+    }
+
     override val _uiState = MutableStateFlow(QrScannerUiState())
 
-    val analyzer: ImageAnalysis.Analyzer = qrCodeAnalyzerFactory.create(onSuccess = { text ->
+    val analyzer: QrCodeAnalyzer = qrCodeAnalyzerFactory.create(onSuccess = { text ->
         if (text.isNotBlank() && !_uiState.value.hasReadCode) {
             parse(text)
         }
     }, onFail = {
         Timber.v("QR not found in frame")
     })
+
+    private fun onScanError() {
+        val now = System.currentTimeMillis()
+        if (now - lastScanErrorAt >= scanErrorIntervalMs) {
+            lastScanErrorAt = now
+            postEvent(QrScannerUiEvent.ShowMessage(R.string.fail_scan_qr_code))
+        }
+    }
 
     fun onPermissionResult(granted: Boolean) {
         updateState {
@@ -59,14 +73,16 @@ class QrScannerViewModel @Inject constructor(
                     }
 
                     is Result.Error -> {
-                        emitEvent(QrScannerUiEvent.ShowMessage(R.string.fail_scan_qr_code))
+                        onScanError()
+                        analyzer.reset()
                     }
 
                     Result.Loading -> Unit
                 }
             } catch (e: Exception) {
                 Timber.e(e, "QR parse failed")
-                emitEvent(QrScannerUiEvent.ShowMessage(R.string.fail_scan_qr_code))
+                onScanError()
+
             }
         }
     }
