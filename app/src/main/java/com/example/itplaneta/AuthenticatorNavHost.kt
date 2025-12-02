@@ -7,14 +7,11 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.itplaneta.ui.navigation.AccountDestination
-import com.example.itplaneta.ui.navigation.HowItWorksDestination
-import com.example.itplaneta.ui.navigation.MainDestination
-import com.example.itplaneta.ui.navigation.QrScannerDestination
-import com.example.itplaneta.ui.navigation.SettingsDestination
 import com.example.itplaneta.ui.screens.account.AccountScreen
 import com.example.itplaneta.ui.screens.howitworks.HowItWorksScreen
 import com.example.itplaneta.ui.screens.mainscreen.MainScreen
+import com.example.itplaneta.ui.screens.pin.PinScenario
+import com.example.itplaneta.ui.screens.pin.PinScreen
 import com.example.itplaneta.ui.screens.qrscanner.ScannerScreen
 import com.example.itplaneta.ui.screens.settings.SettingsScreen
 
@@ -22,7 +19,7 @@ import com.example.itplaneta.ui.screens.settings.SettingsScreen
 fun AuthenticatorNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    startDestination: String = MainDestination.route
+    startDestination: String = PinDestination.route
 ) {
     val topLevelRoutes = setOf(
         MainDestination.route
@@ -33,6 +30,26 @@ fun AuthenticatorNavHost(
         navController = navController,
         startDestination = startDestination,
     ) {
+
+        composable(
+            PinDestination.routeWithArgs, arguments = listOf(
+                navArgument(PinDestination.modeArg) {
+                    type = NavType.StringType
+                    defaultValue = PinScenario.UNLOCK.name
+                })
+        ) { it ->
+
+            val canNavigateBack =
+                navController.previousBackStackEntry != null && navController.currentDestination?.route !in topLevelRoutes
+            PinScreen(onNavigateToMain = {
+                navController.navigate(MainDestination.route) {
+                    popUpTo(PinDestination.route) { inclusive = true }
+                }
+            }, canNavigateBack = canNavigateBack, onNavigateBackToSettings = {
+                navController.popBackStack()
+            })
+        }
+
         composable(MainDestination.route) {
             MainScreen(
                 navigateToSettings = { navController.navigate(SettingsDestination.route) },
