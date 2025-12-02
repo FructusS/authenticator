@@ -60,7 +60,7 @@
     <string name="error_counter_invalid">Counter must be an integer greater than or equal to 0</string>
 
     <string name="error_period_invalid">Period must be between 1 and 2,147,483 seconds</string>
-    <string name="error_digits_invalid">Number of digits must be between 1 and 9</string>
+    <string name="error_digits_invalid">Number of digits must be between 6 and 12</string>
 
     <string name="unsaved_changes">Unsaved changes</string>
     <string name="unsaved_changes_message">You have unsaved changes. Save them?</string>

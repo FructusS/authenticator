@@ -62,7 +62,7 @@
 
     <!-- Simple fixed-text variants -->
     <string name="error_period_invalid">Период должен быть в диапазоне от 1 до 2147483 секунд</string>
-    <string name="error_digits_invalid">Длина кода должна быть от 1 до 9</string>
+    <string name="error_digits_invalid">Длина кода должна быть от 6 до 12</string>
 
     <string name="unsaved_changes">Несохранённые изменения</string>
     <string name="unsaved_changes_message">У Вас есть несохранённые изменения. Сохранить их?</string>
