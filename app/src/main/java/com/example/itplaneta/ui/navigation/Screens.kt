@@ -17,6 +17,16 @@ object MainDestination : NavigationDestination {
     override val titleRes = R.string.app_name
 }
 
+object PinDestination : NavigationDestination {
+    override val route = "pin_screen"
+    override val titleRes = R.string.add
+    const val modeArg = "mode"
+    val routeWithArgs = "${route}?$modeArg={$modeArg}"
+
+    fun createRoute(mode: String?): String = "${route}?$modeArg=${mode}"
+
+}
+
 object AccountDestination : NavigationDestination {
     override val route = "account_screen"
     const val accountIdArg = "accountId"
@@ -25,9 +35,8 @@ object AccountDestination : NavigationDestination {
 
     override val titleRes = R.string.add
 
-    fun createRoute(accountId: Int?): String =
-        if (accountId == null) route
-        else "$route?$accountIdArg=$accountId"
+    fun createRoute(accountId: Int?): String = if (accountId == null) route
+    else "$route?$accountIdArg=$accountId"
 }
 
 object QrScannerDestination : NavigationDestination {
