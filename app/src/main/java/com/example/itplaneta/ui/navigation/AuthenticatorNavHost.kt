@@ -52,9 +52,9 @@ fun AuthenticatorNavHost(
 
         composable(MainDestination.route) {
             MainScreen(
-                navigateToSettings = { navController.navigate(SettingsDestination.route) },
-                navigateToQrScanner = { navController.navigate(QrScannerDestination.route) },
-                navigateToAccount = { accountId ->
+                onNavigateToSettings = { navController.navigate(SettingsDestination.route) },
+                onNavigateToQrScanner = { navController.navigate(QrScannerDestination.route) },
+                onNavigateToAccount = { accountId ->
                     navController.navigate(AccountDestination.createRoute(accountId)) {
                         launchSingleTop = true
                     }

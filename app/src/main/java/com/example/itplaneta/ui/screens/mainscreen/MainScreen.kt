@@ -3,7 +3,6 @@ package com.example.itplaneta.ui.screens.mainscreen
 import android.content.ClipData
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,7 +29,6 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
@@ -43,9 +41,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel(),
-    navigateToSettings: () -> Unit,
-    navigateToQrScanner: () -> Unit,
-    navigateToAccount: (Int?) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToQrScanner: () -> Unit,
+    onNavigateToAccount: (Int?) -> Unit,
     canNavigateBack: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -66,7 +64,7 @@ fun MainScreen(
 
     Scaffold(topBar = {
         AuthenticatorTopAppBar(title = { }, canNavigateBack = canNavigateBack, actions = {
-            IconButton(onClick = navigateToSettings) {
+            IconButton(onClick = onNavigateToSettings) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = stringResource(id = R.string.settings)
@@ -77,8 +75,8 @@ fun MainScreen(
 
         MainFabs(
             expanded = uiState.isFabExpanded, onToggle = viewModel::onFabToggle, actions = listOf(
-                FabsAction(icon = Icons.Default.QrCode2) { navigateToQrScanner() },
-                FabsAction(icon = Icons.Default.Edit) { navigateToAccount(null) })
+                FabsAction(icon = Icons.Default.QrCode2) { onNavigateToQrScanner() },
+                FabsAction(icon = Icons.Default.Edit) { onNavigateToAccount(null) })
         )
 
     }, modifier = Modifier.background(MaterialTheme.colorScheme.background)) { paddingValues ->
@@ -111,7 +109,7 @@ fun MainScreen(
                         }
                         viewModel.onCodeCopied()
                     },
-                    onEdit = { navigateToAccount(account.id) },
+                    onEdit = { onNavigateToAccount(account.id) },
                     onHotpIncrement = { viewModel.incrementHotpCounter(account) })
             }
         }
