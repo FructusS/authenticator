@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -59,7 +60,7 @@ fun SettingsScreen(
             when (event) {
                 is SettingsUiEvent.ShowMessage -> {
                     val text = if (event.arg != null) {
-                        context.getString(event.resId, event.arg)
+                        context.resources.getQuantityString(event.resId, event.arg, event.arg)
                     } else {
                         context.getString(event.resId)
                     }
@@ -100,7 +101,8 @@ fun SettingsScreen(
                 },
                 modifier = Modifier.clickable {
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm")
-                    val fileName = "auth-backup-${LocalDateTime.now().format(formatter)}.json"
+                    val fileName =
+                        "backup-authenticator-${LocalDateTime.now().format(formatter)}.json"
                     backupLauncher.launch(fileName)
                 })
 
@@ -115,7 +117,7 @@ fun SettingsScreen(
 
             uiState.lastBackupMessage?.let { msg ->
                 Text(
-                    text = if (msg.arg != null) stringResource(msg.resId, msg.arg)
+                    text = if (msg.arg != null) pluralStringResource(msg.resId, msg.arg, msg.arg)
                     else stringResource(msg.resId), color = when (uiState.screenState) {
                         is SettingsScreenState.BackupError -> MaterialTheme.colorScheme.error
 
