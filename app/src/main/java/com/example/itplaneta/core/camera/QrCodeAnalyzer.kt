@@ -83,6 +83,10 @@ class QrCodeAnalyzer(
         }
     }
 
+    fun reset() {
+        handled = false
+    }
+
     private fun ByteBuffer.toByteArray(): ByteArray {
         rewind()
         val bytes = ByteArray(remaining())

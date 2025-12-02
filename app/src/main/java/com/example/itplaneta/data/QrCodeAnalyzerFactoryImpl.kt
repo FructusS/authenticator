@@ -10,5 +10,5 @@ class QrCodeAnalyzerFactoryImpl @Inject constructor() : QrCodeAnalyzerFactory {
     override fun create(
         onSuccess: (String) -> Unit,
         onFail: (NotFoundException) -> Unit
-    ): ImageAnalysis.Analyzer = QrCodeAnalyzer(onSuccess, onFail)
+    ): QrCodeAnalyzer = QrCodeAnalyzer(onSuccess, onFail)
 }
