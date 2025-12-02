@@ -1,8 +1,7 @@
 package com.example.itplaneta.ui.screens.settings
 
-import androidx.annotation.StringRes
 import com.example.itplaneta.data.backup.BackupMessage
-import com.example.itplaneta.ui.base.UiEvent
+import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.ui.base.UiState
 
 sealed class SettingsScreenState : UiState {
@@ -15,6 +14,7 @@ sealed class SettingsScreenState : UiState {
 data class SettingsUiState(
     val screenState: SettingsScreenState = SettingsScreenState.Idle,
     val selectedTheme: AppTheme = AppTheme.Auto,
+    val isPinEnabled: Boolean = false,
     val lastBackupMessage: BackupMessage? = null
 ) : UiState
 

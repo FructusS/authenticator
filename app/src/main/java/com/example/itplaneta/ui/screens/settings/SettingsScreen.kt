@@ -3,16 +3,26 @@ package com.example.itplaneta.ui.screens.settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,13 +46,13 @@ import java.time.format.DateTimeFormatter
 fun SettingsScreen(
     onNavigateUp: () -> Unit,
     onNavigateToHowItWorks: () -> Unit,
+    onNavigateToPin: (String) -> Unit,
     canNavigateBack: Boolean,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -66,6 +76,8 @@ fun SettingsScreen(
                     }
                     snackbarHostState.showSnackbar(text)
                 }
+
+                is SettingsUiEvent.NavigateToPinScreen -> onNavigateToPin(event.mode.name)
             }
         }
     }
@@ -82,6 +94,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = stringResource(id = R.string.main_settings),
@@ -136,6 +149,44 @@ fun SettingsScreen(
             ThemeOptions(
                 selectedTheme = uiState.selectedTheme,
                 onThemeSelected = { viewModel.saveTheme(it) })
+
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(vertical = 16.dp)
+                    .fillMaxWidth(),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+
+            Text(
+                text = stringResource(id = R.string.security),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column() {
+                    Text(text = "123")
+                    Text(text = "654")
+
+                }
+                Switch(
+                    checked = uiState.isPinEnabled, onCheckedChange = {
+                        viewModel.onPinCheckedChange(it)
+                    }, thumbContent = if (uiState.isPinEnabled) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        null
+                    })
+            }
         }
     }
 }
