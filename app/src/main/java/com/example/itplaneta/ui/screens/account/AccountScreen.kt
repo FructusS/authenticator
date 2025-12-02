@@ -45,6 +45,7 @@ fun AccountScreen(
     val focusManager = LocalFocusManager.current
 
     BackHandler(enabled = uiState.hasUnsavedChanges) {
+        focusManager.clearFocus()
         viewModel.onBackPressed()
     }
 
