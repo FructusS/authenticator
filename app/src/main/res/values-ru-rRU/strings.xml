@@ -102,6 +102,10 @@
 
     <string name="qr_hint_title">Наведите камеру на QR-код</string>
     <string name="qr_hint_subtitle">Разместите код в рамке, сканирование начнётся автоматически</string>
+    <string name="pin_enter">Введите PIN</string>
+    <string name="security">Безопасность</string>
+    <string name="pin_setup">Установите PIN</string>
+    <string name="pin_confirm">Подтвердите PIN</string>
 
     <string-array name="theme_app">
         <item>Темная тема</item>
