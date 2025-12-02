@@ -93,6 +93,10 @@
 
     <string name="qr_hint_title">Point the camera at the QR code</string>
     <string name="qr_hint_subtitle">Place the code inside the frame, scanning will start automatically</string>
+    <string name="pin_enter">Enter a PIN</string>
+    <string name="security">Security</string>
+    <string name="pin_setup">Установите ПИН</string>
+    <string name="pin_confirm">Подтвердите PIN</string>
 
     <string-array name="theme_app">
         <item>Dark mode</item>
