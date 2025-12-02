@@ -71,8 +71,14 @@
     <string name="save_accounts_desc">Export all your authenticator accounts to an encrypted backup file.</string>
     <string name="load_accounts_desc">Import accounts from an encrypted backup file. Existing entries may be updated or duplicated.</string>
 
-    <string name="backup_saved_successfully">Backup saved successfully (%1$d accounts)</string>
-    <string name="backup_restored_successfully">Restored %1$d accounts</string>
+    <plurals name="backup_saved_successfully">
+        <item quantity="one">Backup saved successfully (%d account)</item>
+        <item quantity="other">Backup saved successfully (%d accounts)</item>
+    </plurals>
+    <plurals name="backup_restored_successfully">
+        <item quantity="one">Restored %d account</item>
+        <item quantity="other">Restored %d accounts</item>
+    </plurals>
     <string name="backup_error_file_not_found">File not found</string>
     <string name="backup_error_io_save">Failed to save backup</string>
     <string name="backup_error_io_read">Failed to read backup file</string>

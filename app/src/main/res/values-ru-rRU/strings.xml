@@ -73,8 +73,20 @@
     <string name="save_accounts_desc">Экспорт всех аккаунтов аутентификатора в зашифрованный файл резервной копии.</string>
     <string name="load_accounts_desc">Импорт аккаунтов из зашифрованного файла резервной копии. Существующие записи могут быть обновлены или продублированы.</string>
 
-    <string name="backup_saved_successfully">Резервная копия сохранена (%1$d аккаунтов)</string>
-    <string name="backup_restored_successfully">Восстановлено %1$d аккаунтов</string>
+    <plurals name="backup_restored_successfully">
+        <item quantity="one">Восстановлён %d аккаунт</item>
+        <item quantity="few">Восстановлено %d аккаунта</item>
+        <item quantity="many">Восстановлено %d аккаунтов</item>
+        <item quantity="other">Восстановлено %d аккаунтов</item>
+    </plurals>
+
+    <plurals name="backup_saved_successfully">
+        <item quantity="one">Резервная копия сохранена (%d аккаунт)</item>
+        <item quantity="few">Резервная копия сохранена (%d аккаунта)</item>
+        <item quantity="many">Резервная копия сохранена (%d аккаунтов)</item>
+        <item quantity="other">Резервная копия сохранена (%d аккаунтов)</item>
+    </plurals>
+
     <string name="backup_error_file_not_found">Файл не найден</string>
     <string name="backup_error_io_save">Не удалось сохранить резервную копию</string>
     <string name="backup_error_io_read">Не удалось прочитать резервную копию</string>
