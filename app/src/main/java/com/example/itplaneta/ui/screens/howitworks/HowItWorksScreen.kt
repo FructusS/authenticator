@@ -51,13 +51,13 @@ fun HowItWorksScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 HorizontalPager(
                     state = pagerState,
+                    pageSpacing = 12.dp,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
