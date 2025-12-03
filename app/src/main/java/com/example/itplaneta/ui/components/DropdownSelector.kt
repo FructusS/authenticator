@@ -1,4 +1,4 @@
-package com.example.itplaneta.ui.base
+package com.example.itplaneta.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem

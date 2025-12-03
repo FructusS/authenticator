@@ -9,7 +9,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.itplaneta.R
 import com.example.itplaneta.domain.validation.AccountFieldError
-import com.example.itplaneta.ui.base.BaseTextField
+import com.example.itplaneta.ui.components.BaseTextField
 
 @Composable
 fun OtpLabel(

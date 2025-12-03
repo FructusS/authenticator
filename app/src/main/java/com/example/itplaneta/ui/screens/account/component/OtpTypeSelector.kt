@@ -6,7 +6,7 @@ import androidx.compose.ui.res.stringResource
 import com.example.itplaneta.R
 import com.example.itplaneta.core.otp.models.OtpType
 import com.example.itplaneta.domain.AccountInputDto
-import com.example.itplaneta.ui.base.DropdownSelector
+import com.example.itplaneta.ui.components.DropdownSelector
 
 
 @Composable

@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.itplaneta.R
 import com.example.itplaneta.core.otp.models.OtpAlgorithm
-import com.example.itplaneta.ui.base.DropdownSelector
+import com.example.itplaneta.ui.components.DropdownSelector
 
 @Composable
 fun OtpAlgorithmSelector(

@@ -8,9 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.itplaneta.R
-import com.example.itplaneta.domain.AccountInputDto
 import com.example.itplaneta.domain.validation.AccountFieldError
-import com.example.itplaneta.ui.base.BaseTextField
+import com.example.itplaneta.ui.components.BaseTextField
 
 @Composable
 fun OtpDigits(
