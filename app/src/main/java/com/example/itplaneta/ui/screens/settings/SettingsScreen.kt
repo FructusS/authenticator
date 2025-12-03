@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
+import com.example.itplaneta.ui.components.AppTopBar
+import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.navigation.SettingsDestination
 import com.example.itplaneta.ui.screens.settings.component.ThemeOptions
 import java.time.LocalDateTime
@@ -83,11 +85,11 @@ fun SettingsScreen(
     }
 
     Scaffold(topBar = {
-        AuthenticatorTopAppBar(
-            title = { Text(stringResource(id = SettingsDestination.titleRes)) },
-            canNavigateBack = canNavigateBack,
-            navigateUp = onNavigateUp
-        )
+        AppTopBar(
+            config = topBarConfig {
+                title(R.string.settings)
+                backButton(onNavigateUp)
+            })
     }, snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Column(
             Modifier
@@ -174,18 +176,18 @@ fun SettingsScreen(
                 }
                 Switch(
                     checked = uiState.isPinEnabled, onCheckedChange = {
-                        viewModel.onPinCheckedChange(it)
-                    }, thumbContent = if (uiState.isPinEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        null
-                    })
+                    viewModel.onPinCheckedChange(it)
+                }, thumbContent = if (uiState.isPinEnabled) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                } else {
+                    null
+                })
             }
         }
     }

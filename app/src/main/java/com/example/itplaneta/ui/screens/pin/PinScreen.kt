@@ -71,13 +71,15 @@ fun PinScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AuthenticatorTopAppBar(
-                title = { Text(stringResource(titleRes)) },
-                canNavigateBack = canNavigateBack,
-                modifier = Modifier,
-                navigateUp = onNavigateBackToSettings
-            )
-        }) { padding ->
+            AppTopBar(
+                config = topBarConfig {
+                    title(titleRes)
+                    if (canNavigateBack) {
+                        backButton(onNavigateBackToSettings)
+                    }
+                })
+        },
+    ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()

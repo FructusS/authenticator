@@ -25,38 +25,3 @@ fun AuthenticatorApp(
 ) {
     AuthenticatorNavHost(navController = navController)
 }
-@Composable
-fun AuthenticatorTopAppBar(
-    title: @Composable () -> Unit,
-    canNavigateBack: Boolean,
-    modifier: Modifier = Modifier,
-    navigateUp: (() -> Unit)? = null,
-    actions: @Composable RowScope.() -> Unit = {},
-    scrollBehavior: TopAppBarScrollBehavior? = null
-) {
-    val colorScheme = MaterialTheme.colorScheme
-    val containerColor = colorScheme.surfaceColorAtElevation(3.dp)
-
-    TopAppBar(
-        title = title,
-        navigationIcon = {
-            if(canNavigateBack && navigateUp != null){
-                IconButton(onClick = navigateUp) {
-                    Icon(
-                        imageVector =  Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back)
-                    )
-                }
-            }
-        },
-        actions = actions,
-        modifier = modifier.fillMaxWidth(),
-        scrollBehavior = scrollBehavior,
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = containerColor,
-            titleContentColor = colorScheme.onSurface,
-            navigationIconContentColor = colorScheme.onSurface,
-            actionIconContentColor = colorScheme.onSurface
-        )
-    )
-}

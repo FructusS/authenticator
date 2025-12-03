@@ -35,6 +35,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.base.UiEvent
+import com.example.itplaneta.ui.components.AppTopBar
+import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.navigation.QrScannerDestination
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -80,11 +82,11 @@ fun ScannerScreen(
     }
 
     Scaffold(topBar = {
-        AuthenticatorTopAppBar(
-            title = { Text(stringResource(id = QrScannerDestination.titleRes)) },
-            canNavigateBack = canNavigateBack,
-            navigateUp = onNavigateUp
-        )
+        AppTopBar(
+            config = topBarConfig {
+                title(R.string.scanning)
+                backButton(onNavigateUp)
+            })
     }, snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
         Box(
             modifier = Modifier
