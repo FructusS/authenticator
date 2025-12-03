@@ -9,6 +9,7 @@ import com.example.itplaneta.ui.base.BaseViewModel
 import com.example.itplaneta.ui.base.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,45 +21,63 @@ class MainViewModel @Inject constructor(
 
     override val _uiState = MutableStateFlow(MainUiState())
 
-    private val accountsFlow = accountRepository.getAccounts()
-
 
     init {
-        // стартуем генерацию OTP
-        otpCodeManager.start(viewModelScope, accountsFlow)
+        loadAccounts()
+        subscribeToOtpData()
+    }
 
-        // аккаунты
+    private fun loadAccounts() {
+        val accountsFlow = accountRepository.getAccounts()
+
+        // стартуем генерацию OTP
+        otpCodeManager.start(accountsFlow)
+
         viewModelScope.launch {
-            accountsFlow.collect { list ->
+            accountsFlow.catch { error ->
+                Timber.e(error, "Error loading accounts")
                 updateState {
                     it.copy(
-                        accounts = list, screenState = MainScreenState.Success
+                        screenState = MainScreenState.Error(
+                            error.message ?: "Unknown error"
+                        )
+                    )
+                }
+            }.collect { accounts ->
+                updateState {
+                    it.copy(
+                        accounts = accounts, screenState = MainScreenState.Success
                     )
                 }
             }
         }
+    }
 
-        // коды
+    private fun subscribeToOtpData() {
+        // Коды
         viewModelScope.launch {
-            otpCodeManager.codes.collect { codes ->
-                updateState { it.copy(codes = codes) }
-            }
+            otpCodeManager.codes.catch { Timber.e(it, "Error in codes flow") }.collect { codes ->
+                    updateState { it.copy(codes = codes) }
+                }
         }
 
-        // прогресс таймера
+        // Прогресс таймера
         viewModelScope.launch {
-            otpCodeManager.timerProgresses.collect { progresses ->
-                updateState { it.copy(timerProgresses = progresses) }
-            }
+            otpCodeManager.timerProgresses.catch { Timber.e(it, "Error in progresses flow") }
+                .collect { progresses ->
+                    updateState { it.copy(timerProgresses = progresses) }
+                }
         }
 
-        // значения таймера
+        // Значения таймера
         viewModelScope.launch {
-            otpCodeManager.timerValues.collect { values ->
-                updateState { it.copy(timerValues = values) }
-            }
+            otpCodeManager.timerValues.catch { Timber.e(it, "Error in timer values flow") }
+                .collect { values ->
+                    updateState { it.copy(timerValues = values) }
+                }
         }
     }
+
 
     fun onFabToggle() {
         updateState { it.copy(isFabExpanded = !it.isFabExpanded) }
