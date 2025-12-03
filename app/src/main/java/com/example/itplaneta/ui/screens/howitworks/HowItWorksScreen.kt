@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.itplaneta.R
 import kotlinx.coroutines.launch
-import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.ui.components.AppTopBar
 import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.navigation.AccountDestination
@@ -52,8 +51,7 @@ fun HowItWorksScreen(
                 .padding(padding)
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -125,13 +123,10 @@ private fun PagerPageContent(item: PagerItem) {
 
 @Composable
 private fun PagerIndicator(
-    itemCount: Int,
-    currentPage: Int,
-    modifier: Modifier = Modifier
+    itemCount: Int, currentPage: Int, modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         repeat(itemCount) { index ->
             val isSelected = index == currentPage
@@ -146,8 +141,7 @@ private fun PagerIndicator(
                 modifier = Modifier
                     .size(size)
                     .background(
-                        color = color,
-                        shape = CircleShape
+                        color = color, shape = CircleShape
                     )
             )
         }
@@ -156,9 +150,7 @@ private fun PagerIndicator(
 
 @Composable
 private fun NavigationButton(
-    isLastPage: Boolean,
-    onNext: () -> Unit,
-    onFinish: () -> Unit
+    isLastPage: Boolean, onNext: () -> Unit, onFinish: () -> Unit
 ) {
     FilledTonalButton(
         onClick = if (isLastPage) onFinish else onNext,
@@ -167,21 +159,16 @@ private fun NavigationButton(
             .height(48.dp)
     ) {
         Text(
-            text = if (isLastPage)
-                stringResource(id = R.string.exit)
-            else
-                stringResource(id = R.string.continue_)
+            text = if (isLastPage) stringResource(id = R.string.exit)
+            else stringResource(id = R.string.continue_)
         )
     }
 }
 
 private fun createPagerItems() = listOf(
     PagerItem(
-        description = R.string.first_pager,
-        image = R.drawable.ic_qr_scanner_phone
-    ),
-    PagerItem(
-        description = R.string.second_pager,
-        image = R.drawable.ic_correct_otp_code
+        description = R.string.first_pager, image = R.drawable.ic_qr_scanner_phone
+    ), PagerItem(
+        description = R.string.second_pager, image = R.drawable.ic_correct_otp_code
     )
 )

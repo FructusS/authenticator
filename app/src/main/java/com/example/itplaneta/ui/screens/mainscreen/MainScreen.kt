@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.components.AppTopBar
 import com.example.itplaneta.ui.components.topBarConfig

@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.base.UiEvent
 import com.example.itplaneta.ui.components.AppTopBar
@@ -62,12 +61,6 @@ fun AccountScreen(
         }
     }
 
-    }, floatingActionButton = {
-        if (uiState.hasUnsavedChanges) {
-            ExtendedFloatingActionButton(
-                text = { Text(text = stringResource(id = R.string.save)) },
-                onClick = {
-                    coroutineScope.launch {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -81,68 +74,88 @@ fun AccountScreen(
                             onNavigateUp()
                         }
                     }
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            }, content = {
-            when (val screenState = uiState.screenState) {
-                is AccountScreenState.Error -> {
-                    AlertDialog(
-                        onDismissRequest = { viewModel.clearError() },
-                        title = { Text("error") },
-                        text = { Text(screenState.message) },
-                        confirmButton = {
-                            Button(onClick = { viewModel.clearError() }) {
-                                Text("ОК")
-                            }
+                }
+            )
+        }, floatingActionButton = {
+            if (uiState.hasUnsavedChanges) {
+                ExtendedFloatingActionButton(
+                    text = { Text(text = stringResource(id = R.string.save)) },
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.saveAccount()
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_save),
+                            contentDescription = stringResource(id = R.string.save)
+                        )
+                    })
+            }
+        }, content = { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            focusManager.clearFocus()
                         })
-                }
+                    }, content = {
+                    when (val screenState = uiState.screenState) {
+                        is AccountScreenState.Error -> {
+                            AlertDialog(
+                                onDismissRequest = { viewModel.clearError() },
+                                title = { Text("error") },
+                                text = { Text(screenState.message) },
+                                confirmButton = {
+                                    Button(onClick = { viewModel.clearError() }) {
+                                        Text("ОК")
+                                    }
+                                })
+                        }
 
-                AccountScreenState.Idle -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                    ) {
-                        AccountInputForm(
-                            viewModel = viewModel
-                        )
+                        AccountScreenState.Idle -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(paddingValues)
+                            ) {
+                                AccountInputForm(
+                                    viewModel = viewModel
+                                )
+                            }
+                        }
+
+                        AccountScreenState.Loading -> {
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.3f))
+                            ) {
+                                CircularProgressIndicator(
+                                    Modifier.align(Alignment.Center),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        is AccountScreenState.Success -> {
+                        }
                     }
-                }
-
-                AccountScreenState.Loading -> {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f))
-                    ) {
-                        CircularProgressIndicator(
-                            Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                is AccountScreenState.Success -> {
-                }
+                })
+            if (uiState.showUnsavedChangesDialog) {
+                UnsavedChangesDialog(
+                    isSecretChanged = uiState.isSecretChanged,
+                    onSave = {
+                        viewModel.dismissUnsavedChangesDialog()
+                        coroutineScope.launch {
+                            viewModel.saveAccount()
+                        }
+                    },
+                    onDiscard = { viewModel.discardChanges() },
+                    onDismiss = { viewModel.dismissUnsavedChangesDialog() })
             }
         })
-        if (uiState.showUnsavedChangesDialog) {
-            UnsavedChangesDialog(
-                isSecretChanged = uiState.isSecretChanged,
-                onSave = {
-                viewModel.dismissUnsavedChangesDialog()
-                coroutineScope.launch {
-                    viewModel.saveAccount()
-                }
-            },
-                onDiscard = { viewModel.discardChanges() },
-                onDismiss = { viewModel.dismissUnsavedChangesDialog() })
-        }
-    })
 }
 
 @Composable
