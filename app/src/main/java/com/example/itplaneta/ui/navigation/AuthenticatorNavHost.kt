@@ -37,10 +37,18 @@ fun AuthenticatorNavHost(
                     type = NavType.StringType
                     defaultValue = PinScenario.UNLOCK.name
                 })
-        ) { it ->
+        ) { backStackEntry ->
 
-            val canNavigateBack =
-                navController.previousBackStackEntry != null && navController.currentDestination?.route !in topLevelRoutes
+            val mode = backStackEntry.arguments?.getString(PinDestination.modeArg)
+            val scenario = try {
+                PinScenario.valueOf(mode ?: PinScenario.UNLOCK.name)
+            } catch (e: Exception) {
+                PinScenario.UNLOCK
+            }
+
+            val canNavigateBack = scenario != PinScenario.UNLOCK &&
+                    navController.previousBackStackEntry != null
+
             PinScreen(onNavigateToMain = {
                 navController.navigate(MainDestination.route) {
                     popUpTo(PinDestination.route) { inclusive = true }

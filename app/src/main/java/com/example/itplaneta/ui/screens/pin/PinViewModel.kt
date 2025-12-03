@@ -34,7 +34,7 @@ class PinViewModel @Inject constructor(
                 val enabled = settingsManager.isPinEnabledFlow.first()
                 updateState { it.copy(isPinEnabled = enabled) }
                 if (uiState.value.isPinEnabled) {
-                    emitEvent(PinUiEvent.NavigateToMain)
+                    emitEvent(PinUiEvent.OpenApp)
                 }
             }
         }
@@ -109,7 +109,7 @@ class PinViewModel @Inject constructor(
             val valid = settingsManager.isPinValid(pin)
             if (valid) {
                 updateState { it.copy(value = "", isError = false) }
-                emitEvent(PinUiEvent.NavigateToMain)
+                emitEvent(PinUiEvent.OpenApp)
             } else {
                 showPinErrorAndClear()
             }
