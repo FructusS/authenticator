@@ -6,6 +6,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +32,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.base.UiEvent
+import com.example.itplaneta.ui.components.AppTopBar
+import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.screens.account.component.AccountInputForm
 import kotlinx.coroutines.launch
 
@@ -58,40 +62,25 @@ fun AccountScreen(
         }
     }
 
-    val titleRes = if (viewModel.isEditMode) {
-        R.string.edit
-    } else {
-        R.string.add
-    }
-
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        AuthenticatorTopAppBar(
-            title = { Text(stringResource(id = titleRes)) },
-            canNavigateBack = canNavigateBack,
-            navigateUp = {
-                if (uiState.hasUnsavedChanges) {
-                    viewModel.onBackPressed()
-                } else {
-                    onNavigateUp()
-                }
-            })
     }, floatingActionButton = {
         if (uiState.hasUnsavedChanges) {
             ExtendedFloatingActionButton(
                 text = { Text(text = stringResource(id = R.string.save)) },
                 onClick = {
                     coroutineScope.launch {
-                        viewModel.saveAccount()
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            AppTopBar(
+                config = topBarConfig {
+                    title(if (viewModel.isEditMode) R.string.edit else R.string.add)
+                    backButton {
+                        if (uiState.hasUnsavedChanges) {
+                            viewModel.onBackPressed()
+                        } else {
+                            onNavigateUp()
+                        }
                     }
-                },
-                icon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_save),
-                        contentDescription = stringResource(id = R.string.save)
-                    )
-                })
-        }
-    }, content = { paddingValues ->
         Box(modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {

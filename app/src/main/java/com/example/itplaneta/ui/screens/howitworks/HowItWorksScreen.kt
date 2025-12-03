@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.example.itplaneta.R
 import kotlinx.coroutines.launch
 import com.example.itplaneta.AuthenticatorTopAppBar
+import com.example.itplaneta.ui.components.AppTopBar
+import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.navigation.AccountDestination
 
 data class PagerItem(
@@ -38,11 +40,11 @@ fun HowItWorksScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(), topBar = {
-            AuthenticatorTopAppBar(
-                title = { Text(stringResource(id = R.string.how_it_works)) },
-                canNavigateBack = canNavigateBack,
-                navigateUp = onNavigateUp
-            )
+            AppTopBar(
+                config = topBarConfig {
+                    title(R.string.how_it_works)
+                    backButton(onNavigateUp)
+                })
         }) { padding ->
         Surface(
             modifier = Modifier

@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.AuthenticatorTopAppBar
 import com.example.itplaneta.R
+import com.example.itplaneta.ui.components.AppTopBar
+import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.screens.mainscreen.component.AccountRow
 import com.example.itplaneta.ui.screens.mainscreen.component.DeleteAccountDialog
 import com.example.itplaneta.ui.screens.mainscreen.component.FabsAction
@@ -63,14 +65,10 @@ fun MainScreen(
     }
 
     Scaffold(topBar = {
-        AuthenticatorTopAppBar(title = { }, canNavigateBack = canNavigateBack, actions = {
-            IconButton(onClick = onNavigateToSettings) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(id = R.string.settings)
-                )
-            }
-        })
+        AppTopBar(
+            config = topBarConfig {
+                settingsAction(onNavigateToSettings)
+            })
     }, floatingActionButton = {
 
         MainFabs(
