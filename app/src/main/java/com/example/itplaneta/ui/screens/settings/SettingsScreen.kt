@@ -1,5 +1,7 @@
 package com.example.itplaneta.ui.screens.settings
 
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -27,16 +29,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.components.AppTopBar
 import com.example.itplaneta.ui.components.topBarConfig
+import com.example.itplaneta.ui.screens.pin.showBiometricPrompt
 import com.example.itplaneta.ui.screens.settings.component.ThemeOptions
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -51,10 +57,13 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
     val backupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
-        if (uri != null) viewModel.saveBackupToExternal(uri)
+        if (uri != null){
+            viewModel.saveBackupToExternal(uri)
+        }
     }
 
     val restoreLauncher = rememberLauncherForActivityResult(
@@ -72,10 +81,37 @@ fun SettingsScreen(
                     } else {
                         context.getString(event.resId)
                     }
-                    snackbarHostState.showSnackbar(text)
+                    snackbarScope.launch {
+                        snackbarHostState.showSnackbar(text)
+                    }
                 }
 
                 is SettingsUiEvent.NavigateToPinScreen -> onNavigateToPin(event.mode.name)
+                SettingsUiEvent.LaunchBiometricToEnable -> {
+                    val activity = context.findFragmentActivity()
+                    if (activity == null) {
+                        viewModel.onBiometricEnableFailed()
+                    } else {
+                        showBiometricPrompt(
+                            activity = activity,
+                            onSuccess = { viewModel.onBiometricEnableAuthenticated() },
+                            onError = { viewModel.onBiometricEnableFailed() }
+                        )
+                    }
+                }
+
+                SettingsUiEvent.LaunchBiometricToDisable -> {
+                    val activity = context.findFragmentActivity()
+                    if (activity == null) {
+                        viewModel.onBiometricDisableFailed()
+                    } else {
+                        showBiometricPrompt(
+                            activity = activity,
+                            onSuccess = { viewModel.onBiometricDisableAuthenticated() },
+                            onError = { viewModel.onBiometricDisableFailed() }
+                        )
+                    }
+                }
             }
         }
     }
@@ -183,6 +219,44 @@ fun SettingsScreen(
                     )
                     }
             )
+
+            ListItem(
+                headlineContent = { Text(stringResource(id = R.string.biometric_unlock_title)) },
+                supportingContent = {
+                    val textRes = when {
+                        !uiState.biometricAvailability.isAvailable -> R.string.biometric_unavailable_desc
+                        !uiState.isPinEnabled -> R.string.biometric_requires_pin_desc
+                        else -> R.string.biometric_unlock_desc
+                    }
+                    Text(stringResource(id = textRes))
+                },
+                trailingContent = {
+                    Switch(
+                        checked = uiState.isBiometricEnabled && uiState.canToggleBiometric,
+                        enabled = uiState.canToggleBiometric,
+                        onCheckedChange = { viewModel.onBiometricCheckedChange(it) },
+                        thumbContent = if (uiState.isBiometricEnabled && uiState.canToggleBiometric) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        }
+                    )
+                }
+            )
         }
+    }
+}
+
+private tailrec fun Context.findFragmentActivity(): FragmentActivity? {
+    return when (this) {
+        is FragmentActivity -> this
+        is ContextWrapper -> baseContext.findFragmentActivity()
+        else -> null
     }
 }

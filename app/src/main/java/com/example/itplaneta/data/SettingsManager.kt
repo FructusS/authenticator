@@ -34,7 +34,10 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
     val isBiometricEnabledFlow: Flow<Boolean> = context.dataStore.data.map { it[BIOMETRIC_ENABLED_KEY] ?: false }
 
     suspend fun setBiometricEnabled(enabled: Boolean) {
-        context.dataStore.edit { it[BIOMETRIC_ENABLED_KEY] = enabled }
+        context.dataStore.edit { prefs ->
+            val isPinEnabled = prefs[PIN_ENABLED_KEY] ?: false
+            prefs[BIOMETRIC_ENABLED_KEY] = enabled && isPinEnabled
+        }
     }
     val getTheme: Flow<AppTheme> = context.dataStore.data.map { preferences ->
         val name = preferences[THEME_KEY] ?: AppTheme.Auto.name

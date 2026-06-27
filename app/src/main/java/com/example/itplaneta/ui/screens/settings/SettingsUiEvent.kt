@@ -6,6 +6,8 @@ import com.example.itplaneta.ui.screens.pin.PinScenario
 
 sealed class SettingsUiEvent : UiEvent {
     data class NavigateToPinScreen(val mode: PinScenario) : SettingsUiEvent()
+    object LaunchBiometricToEnable : SettingsUiEvent()
+    object LaunchBiometricToDisable : SettingsUiEvent()
 
     data class ShowMessage(@StringRes val resId: Int, val arg: Int? = null) : SettingsUiEvent()
 }

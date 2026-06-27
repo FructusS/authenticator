@@ -1,6 +1,7 @@
 package com.example.itplaneta.ui.screens.settings
 
 import com.example.itplaneta.data.backup.BackupMessage
+import com.example.itplaneta.core.biometric.BiometricAvailability
 import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.ui.base.UiState
 
@@ -15,6 +16,11 @@ data class SettingsUiState(
     val screenState: SettingsScreenState = SettingsScreenState.Idle,
     val selectedTheme: AppTheme = AppTheme.Auto,
     val isPinEnabled: Boolean = false,
+    val isBiometricEnabled: Boolean = false,
+    val biometricAvailability: BiometricAvailability = BiometricAvailability.Unknown,
     val lastBackupMessage: BackupMessage? = null
-) : UiState
+) : UiState {
+    val canToggleBiometric: Boolean
+        get() = isPinEnabled && biometricAvailability.isAvailable
+}
 
