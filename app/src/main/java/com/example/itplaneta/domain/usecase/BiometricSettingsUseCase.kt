@@ -2,6 +2,7 @@ package com.example.itplaneta.domain.usecase
 
 import com.example.itplaneta.core.biometric.BiometricAvailability
 import com.example.itplaneta.domain.IBiometricRepository
+import com.example.itplaneta.domain.IBiometricSettingsRepository
 import com.example.itplaneta.domain.IPinRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -25,13 +26,14 @@ sealed class SetBiometricEnabledResult {
 
 class BiometricSettingsUseCase @Inject constructor(
     private val pinRepository: IPinRepository,
+    private val biometricSettingsRepository: IBiometricSettingsRepository,
     private val biometricRepository: IBiometricRepository
 ) {
     fun observeSettings(): Flow<BiometricSettings> {
         val availability = biometricRepository.checkAvailability()
         return combine(
             pinRepository.isPinEnabledFlow,
-            pinRepository.isBiometricEnabledFlow
+            biometricSettingsRepository.isBiometricEnabledFlow
         ) { isPinEnabled, isBiometricEnabled ->
             BiometricSettings(
                 isPinEnabled = isPinEnabled,
@@ -43,13 +45,13 @@ class BiometricSettingsUseCase @Inject constructor(
 
     suspend fun setBiometricEnabled(enabled: Boolean): SetBiometricEnabledResult {
         if (!enabled) {
-            pinRepository.setBiometricEnabled(false)
+            biometricSettingsRepository.setBiometricEnabled(false)
             return SetBiometricEnabledResult.Success
         }
 
         return when (val validation = validateCanEnableBiometric()) {
             SetBiometricEnabledResult.Success -> {
-                pinRepository.setBiometricEnabled(true)
+                biometricSettingsRepository.setBiometricEnabled(true)
                 SetBiometricEnabledResult.Success
             }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.itplaneta.R
 import com.example.itplaneta.domain.IBiometricRepository
+import com.example.itplaneta.domain.IBiometricSettingsRepository
 import com.example.itplaneta.domain.IPinRepository
 import com.example.itplaneta.domain.validation.PinValidator
 import com.example.itplaneta.ui.base.BaseViewModel
@@ -17,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PinViewModel @Inject constructor(
     private val pinRepository: IPinRepository,
+    private val biometricSettingsRepository: IBiometricSettingsRepository,
     private val biometricRepository: IBiometricRepository,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<PinUiState, PinUiEvent>() {
@@ -28,7 +30,7 @@ class PinViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            pinRepository.isBiometricEnabledFlow.collect { enabled ->
+            biometricSettingsRepository.isBiometricEnabledFlow.collect { enabled ->
                 updateState { it.copy(isBiometricEnabled = enabled) }
                 requestBiometricIfReady(auto = true)
             }

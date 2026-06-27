@@ -4,6 +4,7 @@ import androidx.fragment.app.FragmentActivity
 import com.example.itplaneta.core.biometric.BiometricAvailability
 import com.example.itplaneta.core.biometric.BiometricResult
 import com.example.itplaneta.domain.IBiometricRepository
+import com.example.itplaneta.domain.IBiometricSettingsRepository
 import com.example.itplaneta.domain.IPinRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,67 +19,86 @@ class BiometricSettingsUseCaseTest {
     @Test
     fun enablingBiometricWhenPinEnabledStoresEnabledFlag() = runTest {
         val pinRepository = FakePinRepository(pinEnabled = true)
-        val useCase = createUseCase(pinRepository, BiometricAvailability.Available)
+        val biometricSettingsRepository = FakeBiometricSettingsRepository()
+        val useCase = createUseCase(
+            pinRepository,
+            biometricSettingsRepository,
+            BiometricAvailability.Available
+        )
 
         val result = useCase.setBiometricEnabled(true)
 
         assertEquals(SetBiometricEnabledResult.Success, result)
-        assertTrue(pinRepository.biometricEnabled.value)
+        assertTrue(biometricSettingsRepository.biometricEnabled.value)
     }
 
     @Test
     fun validatingBiometricEnableDoesNotStoreEnabledFlagBeforeAuthentication() = runTest {
         val pinRepository = FakePinRepository(pinEnabled = true)
-        val useCase = createUseCase(pinRepository, BiometricAvailability.Available)
+        val biometricSettingsRepository = FakeBiometricSettingsRepository()
+        val useCase = createUseCase(
+            pinRepository,
+            biometricSettingsRepository,
+            BiometricAvailability.Available
+        )
 
         val result = useCase.validateCanEnableBiometric()
 
         assertEquals(SetBiometricEnabledResult.Success, result)
-        assertFalse(pinRepository.biometricEnabled.value)
+        assertFalse(biometricSettingsRepository.biometricEnabled.value)
     }
 
     @Test
     fun enablingBiometricWithoutPinIsRejected() = runTest {
         val pinRepository = FakePinRepository(pinEnabled = false)
-        val useCase = createUseCase(pinRepository, BiometricAvailability.Available)
+        val biometricSettingsRepository = FakeBiometricSettingsRepository()
+        val useCase = createUseCase(
+            pinRepository,
+            biometricSettingsRepository,
+            BiometricAvailability.Available
+        )
 
         val result = useCase.setBiometricEnabled(true)
 
         assertEquals(SetBiometricEnabledResult.PinRequired, result)
-        assertFalse(pinRepository.biometricEnabled.value)
+        assertFalse(biometricSettingsRepository.biometricEnabled.value)
     }
 
     @Test
     fun disablingBiometricStoresDisabledFlag() = runTest {
-        val pinRepository = FakePinRepository(
-            pinEnabled = true,
-            biometricEnabled = true
+        val pinRepository = FakePinRepository(pinEnabled = true)
+        val biometricSettingsRepository = FakeBiometricSettingsRepository(biometricEnabled = true)
+        val useCase = createUseCase(
+            pinRepository,
+            biometricSettingsRepository,
+            BiometricAvailability.Available
         )
-        val useCase = createUseCase(pinRepository, BiometricAvailability.Available)
 
         val result = useCase.setBiometricEnabled(false)
 
         assertEquals(SetBiometricEnabledResult.Success, result)
-        assertFalse(pinRepository.biometricEnabled.value)
+        assertFalse(biometricSettingsRepository.biometricEnabled.value)
     }
 
     @Test
-    fun disablingPinAutomaticallyDisablesBiometric() = runTest {
-        val pinRepository = FakePinRepository(
-            pinEnabled = true,
-            biometricEnabled = true
+    fun disabledPinMasksStoredBiometricEnabledState() = runTest {
+        val useCase = createUseCase(
+            FakePinRepository(pinEnabled = false),
+            FakeBiometricSettingsRepository(biometricEnabled = true),
+            BiometricAvailability.Available
         )
 
-        pinRepository.setPinEnabled(false)
+        val settings = useCase.observeSettings().first()
 
-        assertFalse(pinRepository.isPinEnabledFlow.first())
-        assertFalse(pinRepository.isBiometricEnabledFlow.first())
+        assertFalse(settings.isPinEnabled)
+        assertFalse(settings.isBiometricEnabled)
     }
 
     @Test
     fun unavailableBiometricIsExposedInSettingsState() = runTest {
         val useCase = createUseCase(
             FakePinRepository(pinEnabled = true),
+            FakeBiometricSettingsRepository(),
             BiometricAvailability.NoHardware
         )
 
@@ -91,48 +111,57 @@ class BiometricSettingsUseCaseTest {
     @Test
     fun enablingUnavailableBiometricIsRejected() = runTest {
         val pinRepository = FakePinRepository(pinEnabled = true)
-        val useCase = createUseCase(pinRepository, BiometricAvailability.NoHardware)
+        val biometricSettingsRepository = FakeBiometricSettingsRepository()
+        val useCase = createUseCase(
+            pinRepository,
+            biometricSettingsRepository,
+            BiometricAvailability.NoHardware
+        )
 
         val result = useCase.setBiometricEnabled(true)
 
         assertTrue(result is SetBiometricEnabledResult.Unavailable)
-        assertFalse(pinRepository.biometricEnabled.value)
+        assertFalse(biometricSettingsRepository.biometricEnabled.value)
     }
 
     private fun createUseCase(
         pinRepository: FakePinRepository,
+        biometricSettingsRepository: FakeBiometricSettingsRepository,
         availability: BiometricAvailability
     ): BiometricSettingsUseCase {
         return BiometricSettingsUseCase(
             pinRepository = pinRepository,
+            biometricSettingsRepository = biometricSettingsRepository,
             biometricRepository = FakeBiometricRepository(availability)
         )
     }
 
     private class FakePinRepository(
-        pinEnabled: Boolean,
-        biometricEnabled: Boolean = false
+        pinEnabled: Boolean
     ) : IPinRepository {
         val pinEnabled = MutableStateFlow(pinEnabled)
-        val biometricEnabled = MutableStateFlow(biometricEnabled)
 
         override val isPinEnabledFlow: Flow<Boolean> = this.pinEnabled
-        override val isBiometricEnabledFlow: Flow<Boolean> = this.biometricEnabled
 
         override suspend fun setPinEnabled(enabled: Boolean) {
             pinEnabled.value = enabled
-            if (!enabled) {
-                biometricEnabled.value = false
-            }
-        }
-
-        override suspend fun setBiometricEnabled(enabled: Boolean) {
-            biometricEnabled.value = enabled
         }
 
         override suspend fun savePin(pin: String) = Unit
 
         override suspend fun isPinValid(input: String): Boolean = false
+    }
+
+    private class FakeBiometricSettingsRepository(
+        biometricEnabled: Boolean = false
+    ) : IBiometricSettingsRepository {
+        val biometricEnabled = MutableStateFlow(biometricEnabled)
+
+        override val isBiometricEnabledFlow: Flow<Boolean> = this.biometricEnabled
+
+        override suspend fun setBiometricEnabled(enabled: Boolean) {
+            biometricEnabled.value = enabled
+        }
     }
 
     private class FakeBiometricRepository(

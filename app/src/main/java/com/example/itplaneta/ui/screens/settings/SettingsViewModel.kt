@@ -6,7 +6,7 @@ import com.example.itplaneta.R
 import com.example.itplaneta.core.utils.Result
 import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.domain.IAccountBackupManager
-import com.example.itplaneta.data.SettingsManager
+import com.example.itplaneta.domain.IAppSettingsRepository
 import com.example.itplaneta.domain.usecase.BiometricSettingsUseCase
 import com.example.itplaneta.domain.usecase.SetBiometricEnabledResult
 import com.example.itplaneta.ui.base.BaseViewModel
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsManager: SettingsManager,
+    private val appSettingsRepository: IAppSettingsRepository,
     private val backupManager: IAccountBackupManager,
     private val biometricSettingsUseCase: BiometricSettingsUseCase
 ) : BaseViewModel<SettingsUiState, SettingsUiEvent>() {
@@ -29,7 +29,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            settingsManager.getTheme.collect { theme ->
+            appSettingsRepository.themeFlow.collect { theme ->
                 updateState { it.copy(selectedTheme = theme) }
             }
         }
@@ -51,7 +51,7 @@ class SettingsViewModel @Inject constructor(
     fun saveTheme(theme: AppTheme) {
         viewModelScope.launch {
             try {
-                settingsManager.saveTheme(theme)
+                appSettingsRepository.saveTheme(theme)
                 updateState { it.copy(selectedTheme = theme) }
                 Timber.d("Theme saved: $theme")
             } catch (e: Exception) {
