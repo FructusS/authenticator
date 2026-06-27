@@ -1,7 +1,7 @@
 package com.example.itplaneta.ui.screens.pin
 
 import android.content.Context
-import androidx.biometric.BiometricManager
+import android.content.ContextWrapper
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
 import androidx.compose.animation.animateColorAsState
@@ -33,20 +33,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.components.AppTopBar
 import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.screens.pin.component.NumericKeyboard
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -58,6 +62,7 @@ fun PinScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val titleRes = when (state.scenario) {
@@ -69,7 +74,6 @@ fun PinScreen(
         }
     }
 
-    // 1) проверка, есть ли биометрия на устройстве и пользователь её настроил
     LaunchedEffect(state.screenState) {
         if (state.screenState == PinCodeScreenState.Success && state.scenario == PinScenario.UNLOCK) {
             delay(PinAnimationConstants.SUCCESS_DELAY_MS)
@@ -77,15 +81,20 @@ fun PinScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        val manager = BiometricManager.from(context)
-        val canAuth = manager.canAuthenticate(BIOMETRIC_STRONG)
-        val available = canAuth == BiometricManager.BIOMETRIC_SUCCESS
-        viewModel.onBiometricAvailability(available)
+    LaunchedEffect(state.biometricPromptRequest) {
+        if (state.biometricPromptRequest <= 0) {
+            return@LaunchedEffect
+        }
 
-        // автозапуск при входе в приложение, если всё включено
-        if (available) {
-            viewModel.onBiometricRequested()
+        val activity = context.findFragmentActivity()
+        if (activity == null) {
+            viewModel.onBiometricError()
+        } else {
+            showBiometricPrompt(
+                activity = activity,
+                onSuccess = { viewModel.onBiometricSuccess() },
+                onError = { viewModel.onBiometricError() }
+            )
         }
     }
 
@@ -94,18 +103,14 @@ fun PinScreen(
             when (event) {
                 is PinUiEvent.OpenApp -> onNavigateToMain()
                 is PinUiEvent.ShowMessage -> {
-                    snackbarHostState.showSnackbar(
-                        message = context.getString(event.resId)
-                    )
+                    snackbarScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(event.resId)
+                        )
+                    }
                 }
 
                 PinUiEvent.NavigateBackToSettings -> onNavigateBackToSettings()
-                PinUiEvent.LaunchBiometric -> {
-                    showBiometricPrompt(
-                        activity = context,
-                        onSuccess = { viewModel.onBiometricSuccess() },
-                        onError = { viewModel.onBiometricError() })
-                }
             }
         }
     }
@@ -207,20 +212,28 @@ fun PinScreen(
                     onBackspaceLongClick = { viewModel.onBackspaceLongClick() },
                     onEnterClick = { viewModel.onSubmit() },
                 )
+
+                if (state.canUseBiometric &&
+                    state.isBiometricEnabled &&
+                    state.scenario == PinScenario.UNLOCK
+                ) {
+                    Spacer(Modifier.height(12.dp))
+                    IconButton(onClick = { viewModel.onBiometricRequested() }) {
+                        Icon(
+                            Icons.Default.Fingerprint,
+                            contentDescription = stringResource(
+                                R.string.biometric_button_content_description
+                            )
+                        )
+                    }
+                }
             }
-        }
-    }
-    if (state.canUseBiometric && state.isBiometricEnabled && state.scenario == PinScenario.UNLOCK) {
-        IconButton(onClick = { viewModel.onBiometricRequested() }) {
-            Icon(
-                Icons.Default.Fingerprint, contentDescription = null
-            )
         }
     }
 }
 
 fun showBiometricPrompt(
-    activity: Context, onSuccess: () -> Unit, onError: () -> Unit
+    activity: FragmentActivity, onSuccess: () -> Unit, onError: () -> Unit
 ) {
     val executor = ContextCompat.getMainExecutor(activity)
 
@@ -237,16 +250,24 @@ fun showBiometricPrompt(
 
         override fun onAuthenticationFailed() {
             super.onAuthenticationFailed()
-            // один неверный палец — просто игнорируем, диалог остаётся
         }
     }
 
-//    val prompt = BiometricPrompt(activity, executor, callback)
-//
-//    val promptInfo =
-//        BiometricPrompt.PromptInfo.Builder().setTitle("R.string.biometric_prompt_title")
-//            .setSubtitle("R.string.biometric_prompt_subtitle")
-//            .setNegativeButtonText(activity.getString(R.string.cancel)).build()
-//
-//    prompt.authenticate(promptInfo)
+    val prompt = BiometricPrompt(activity, executor, callback)
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle(activity.getString(R.string.biometric_prompt_title))
+        .setSubtitle(activity.getString(R.string.biometric_prompt_subtitle))
+        .setNegativeButtonText(activity.getString(R.string.cancel))
+        .setAllowedAuthenticators(BIOMETRIC_STRONG)
+        .build()
+
+    prompt.authenticate(promptInfo)
+}
+
+private tailrec fun Context.findFragmentActivity(): FragmentActivity? {
+    return when (this) {
+        is FragmentActivity -> this
+        is ContextWrapper -> baseContext.findFragmentActivity()
+        else -> null
+    }
 }

@@ -3,6 +3,7 @@ package com.example.itplaneta.ui.screens.pin
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.itplaneta.R
+import com.example.itplaneta.domain.IBiometricRepository
 import com.example.itplaneta.domain.IPinRepository
 import com.example.itplaneta.domain.validation.PinValidator
 import com.example.itplaneta.ui.base.BaseViewModel
@@ -10,50 +11,71 @@ import com.example.itplaneta.ui.navigation.PinDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PinViewModel @Inject constructor(
     private val pinRepository: IPinRepository,
+    private val biometricRepository: IBiometricRepository,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<PinUiState, PinUiEvent>() {
     private val startMode: PinScenario =
         PinScenario.fromName(savedStateHandle.get<String>(PinDestination.modeArg))
 
     override val _uiState = MutableStateFlow(PinUiState(startMode))
+    private var biometricPromptAutoRequested = false
 
     init {
         viewModelScope.launch {
             pinRepository.isBiometricEnabledFlow.collect { enabled ->
                 updateState { it.copy(isBiometricEnabled = enabled) }
+                requestBiometricIfReady(auto = true)
+            }
+        }
+
+        viewModelScope.launch {
+            pinRepository.isPinEnabledFlow.collect { enabled ->
+                updateState { it.copy(isPinEnabled = enabled) }
+                if (startMode == PinScenario.UNLOCK && !enabled) {
+                    openApp()
+                } else {
+                    requestBiometricIfReady(auto = true)
+                }
             }
         }
 
         if (startMode == PinScenario.UNLOCK) {
             viewModelScope.launch {
-                val enabled = pinRepository.isPinEnabledFlow.first()
-                updateState { it.copy(isPinEnabled = enabled) }
-                if (!enabled) {
-                    openApp()
-                }
+                val availability = biometricRepository.checkAvailability()
+                updateState { it.copy(canUseBiometric = availability.isAvailable) }
+                requestBiometricIfReady(auto = true)
             }
         }
     }
 
-    fun onBiometricAvailability(canUse: Boolean) {
-        updateState { it.copy(canUseBiometric = canUse) }
+    fun onBiometricRequested() {
+        requestBiometricIfReady(auto = false)
     }
 
-    fun onBiometricRequested() {
+    private fun requestBiometricIfReady(auto: Boolean) {
         val state = uiState.value
+        if (auto && biometricPromptAutoRequested) {
+            return
+        }
+
         if (state.canUseBiometric &&
             state.isBiometricEnabled &&
             state.scenario == PinScenario.UNLOCK &&
-            state.isPinEnabled
+            state.isPinEnabled &&
+            state.screenState != PinCodeScreenState.Success
         ) {
-            postEvent(PinUiEvent.LaunchBiometric)
+            if (auto) {
+                biometricPromptAutoRequested = true
+            }
+            updateState {
+                it.copy(biometricPromptRequest = it.biometricPromptRequest + 1)
+            }
         }
     }
 
@@ -63,7 +85,9 @@ class PinViewModel @Inject constructor(
         }
     }
 
-    fun onBiometricError() = Unit
+    fun onBiometricError() {
+        // PIN input stays available as the fallback after cancel/error.
+    }
 
     fun onDigitClick(digit: Char) {
         var shouldSubmit = false

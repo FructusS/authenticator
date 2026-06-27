@@ -17,6 +17,10 @@ class PinRepository @Inject constructor(
         settingsManager.setPinEnabled(enabled)
     }
 
+    override suspend fun setBiometricEnabled(enabled: Boolean) {
+        settingsManager.setBiometricEnabled(enabled)
+    }
+
     override suspend fun savePin(pin: String) {
         settingsManager.savePin(pin)
     }

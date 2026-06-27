@@ -7,7 +7,8 @@ import com.example.itplaneta.core.utils.Result
 import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.domain.IAccountBackupManager
 import com.example.itplaneta.data.SettingsManager
-import com.example.itplaneta.domain.IPinRepository
+import com.example.itplaneta.domain.usecase.BiometricSettingsUseCase
+import com.example.itplaneta.domain.usecase.SetBiometricEnabledResult
 import com.example.itplaneta.ui.base.BaseViewModel
 import com.example.itplaneta.ui.screens.pin.PinScenario
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     private val settingsManager: SettingsManager,
     private val backupManager: IAccountBackupManager,
-    private val pinRepository: IPinRepository
+    private val biometricSettingsUseCase: BiometricSettingsUseCase
 ) : BaseViewModel<SettingsUiState, SettingsUiEvent>() {
 
 
@@ -34,8 +35,14 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            pinRepository.isPinEnabledFlow.collect { enabled ->
-                updateState { it.copy(isPinEnabled = enabled) }
+            biometricSettingsUseCase.observeSettings().collect { settings ->
+                updateState {
+                    it.copy(
+                        isPinEnabled = settings.isPinEnabled,
+                        isBiometricEnabled = settings.isBiometricEnabled,
+                        biometricAvailability = settings.availability
+                    )
+                }
             }
         }
     }
@@ -134,4 +141,45 @@ class SettingsViewModel @Inject constructor(
             emitEvent(SettingsUiEvent.NavigateToPinScreen(mode))
         }
     }
+
+    fun onBiometricCheckedChange(value: Boolean) {
+        viewModelScope.launch {
+            if (value) {
+                when (biometricSettingsUseCase.validateCanEnableBiometric()) {
+                    SetBiometricEnabledResult.Success -> {
+                        emitEvent(SettingsUiEvent.LaunchBiometricToEnable)
+                    }
+
+                    SetBiometricEnabledResult.PinRequired -> Unit
+
+                    is SetBiometricEnabledResult.Unavailable -> Unit
+                }
+                return@launch
+            }
+
+            emitEvent(SettingsUiEvent.LaunchBiometricToDisable)
+        }
+    }
+
+    fun onBiometricEnableAuthenticated() {
+        viewModelScope.launch {
+            when (biometricSettingsUseCase.setBiometricEnabled(true)) {
+                SetBiometricEnabledResult.Success -> Unit
+
+                SetBiometricEnabledResult.PinRequired -> Unit
+
+                is SetBiometricEnabledResult.Unavailable -> Unit
+            }
+        }
+    }
+
+    fun onBiometricDisableAuthenticated() {
+        viewModelScope.launch {
+            biometricSettingsUseCase.setBiometricEnabled(false)
+        }
+    }
+
+    fun onBiometricEnableFailed() = Unit
+
+    fun onBiometricDisableFailed() = Unit
 }

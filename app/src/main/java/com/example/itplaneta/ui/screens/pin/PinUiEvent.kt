@@ -7,5 +7,4 @@ sealed class PinUiEvent : UiEvent {
     object NavigateBackToSettings : PinUiEvent()
     data class ShowMessage(@StringRes val resId: Int) : PinUiEvent()
     object OpenApp : PinUiEvent()
-    object LaunchBiometric : PinUiEvent()
 }

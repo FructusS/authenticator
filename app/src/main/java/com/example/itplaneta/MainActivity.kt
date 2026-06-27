@@ -1,17 +1,17 @@
 package com.example.itplaneta
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.data.SettingsManager
 import com.example.itplaneta.ui.theme.AuthenticatorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

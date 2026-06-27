@@ -113,8 +113,18 @@
     <string name="pin_error_mismatch">PIN-коды не совпадают. Попробуйте еще раз.</string>
     <string name="pin_enabled">Блокировка по PIN включена.</string>
     <string name="pin_disabled">Блокировка по PIN отключена.</string>
-    <string name="biometric_prompt_title" />
-    <string name="biometric_prompt_subtitle" />
+    <string name="biometric_unlock_title">Разблокировка по биометрии</string>
+    <string name="biometric_unlock_desc">Использовать биометрию для разблокировки приложения.</string>
+    <string name="biometric_requires_pin_desc">Включите блокировку по PIN, чтобы использовать биометрию.</string>
+    <string name="biometric_unavailable_desc">Биометрия недоступна на этом устройстве.</string>
+    <string name="biometric_enabled">Разблокировка по биометрии включена.</string>
+    <string name="biometric_disabled">Разблокировка по биометрии отключена.</string>
+    <string name="biometric_requires_pin">Сначала включите блокировку по PIN.</string>
+    <string name="biometric_unavailable">Биометрия недоступна на этом устройстве.</string>
+    <string name="biometric_auth_failed">Биометрическая проверка отменена или не пройдена. Используйте PIN.</string>
+    <string name="biometric_prompt_title">Разблокировка приложения</string>
+    <string name="biometric_prompt_subtitle">Используйте биометрию или введите PIN.</string>
+    <string name="biometric_button_content_description">Использовать биометрию</string>
 
     <string-array name="theme_app">
         <item>Темная тема</item>

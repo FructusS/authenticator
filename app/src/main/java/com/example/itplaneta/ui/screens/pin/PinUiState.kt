@@ -32,6 +32,7 @@ data class PinUiState(
     val canUseBiometric: Boolean = false,
     val isBiometricEnabled: Boolean = false,
     val isPinEnabled: Boolean = false,
+    val biometricPromptRequest: Int = 0,
     val isInputLocked: Boolean = false,
     val screenState: PinCodeScreenState = PinCodeScreenState.Idle
 )
