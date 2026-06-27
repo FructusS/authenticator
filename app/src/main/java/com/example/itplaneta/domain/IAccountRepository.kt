@@ -1,9 +1,8 @@
 package com.example.itplaneta.domain
 
 
-import com.example.itplaneta.core.utils.Result
-import com.example.itplaneta.data.repository.AccountResult
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
+import com.example.itplaneta.domain.model.AccountResult
 import kotlinx.coroutines.flow.Flow
 
 

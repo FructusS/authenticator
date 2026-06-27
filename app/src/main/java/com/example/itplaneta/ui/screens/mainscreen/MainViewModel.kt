@@ -3,8 +3,8 @@ package com.example.itplaneta.ui.screens.mainscreen
 import androidx.lifecycle.viewModelScope
 import com.example.itplaneta.R
 import com.example.itplaneta.core.otp.OtpCodeManager
-import com.example.itplaneta.data.sources.Account
 import com.example.itplaneta.domain.IAccountRepository
+import com.example.itplaneta.domain.model.Account
 import com.example.itplaneta.ui.base.BaseViewModel
 import com.example.itplaneta.ui.base.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel

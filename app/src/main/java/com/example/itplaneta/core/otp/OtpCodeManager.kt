@@ -2,7 +2,7 @@ package com.example.itplaneta.core.otp
 
 import com.example.itplaneta.core.otp.models.OtpGenerator
 import com.example.itplaneta.core.otp.models.OtpType
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

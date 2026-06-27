@@ -1,6 +1,6 @@
 package com.example.itplaneta.domain
 
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 
 interface IBackupRepository {
     fun serializeAccounts(accounts: List<Account>): String

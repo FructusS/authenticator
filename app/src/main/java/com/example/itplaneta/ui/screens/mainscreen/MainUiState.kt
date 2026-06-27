@@ -1,6 +1,6 @@
 package com.example.itplaneta.ui.screens.mainscreen
 
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 import com.example.itplaneta.ui.base.UiState
 
 sealed class MainScreenState : UiState {

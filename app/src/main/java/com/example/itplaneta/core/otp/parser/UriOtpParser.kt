@@ -1,12 +1,10 @@
 package com.example.itplaneta.core.otp.parser
 
 
-import android.net.Uri
-import com.example.itplaneta.data.sources.Account
 import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
 import com.example.itplaneta.core.utils.Result
-import com.example.itplaneta.data.backup.BackupMessage
+import com.example.itplaneta.domain.model.Account
 import com.example.itplaneta.domain.validation.AccountConstraints
 import javax.inject.Inject
 import javax.inject.Singleton

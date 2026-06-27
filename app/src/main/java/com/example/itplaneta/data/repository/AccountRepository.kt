@@ -1,25 +1,27 @@
 package com.example.itplaneta.data.repository
 
 import com.example.itplaneta.core.utils.Result
-import com.example.itplaneta.data.backup.BackupMessage
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.data.mapper.toDomain
+import com.example.itplaneta.data.mapper.toEntity
 import com.example.itplaneta.data.sources.database.AccountDao
 import com.example.itplaneta.domain.IAccountRepository
+import com.example.itplaneta.domain.model.Account
+import com.example.itplaneta.domain.model.AccountResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 
-typealias AccountResult<T> = Result<T, String>
 class AccountRepository @Inject constructor(
     private val accountDao: AccountDao
 ) : IAccountRepository {
 
     override suspend fun addAccount(newAccount: Account): AccountResult<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
-            accountDao.addAccount(newAccount)
+            accountDao.addAccount(newAccount.toEntity())
             Timber.d("Account added: ${newAccount.label}")
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -30,7 +32,7 @@ class AccountRepository @Inject constructor(
 
     override suspend fun updateAccount(account: Account): AccountResult<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
-            accountDao.updateAccount(account)
+            accountDao.updateAccount(account.toEntity())
             Timber.d("Account updated: ${account.label}")
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -39,11 +41,12 @@ class AccountRepository @Inject constructor(
         }
     }
 
-    override fun getAccounts(): Flow<List<Account>> = accountDao.getAllAccountsFlow()
+    override fun getAccounts(): Flow<List<Account>> =
+        accountDao.getAllAccountsFlow().map { accounts -> accounts.map { it.toDomain() } }
 
     override suspend fun deleteAccount(account: Account): AccountResult<Unit> = withContext(Dispatchers.IO) {
         return@withContext try {
-            accountDao.deleteAccount(account)
+            accountDao.deleteAccount(account.toEntity())
             Timber.d("Account deleted: ${account.label}")
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -56,7 +59,7 @@ class AccountRepository @Inject constructor(
         return@withContext try {
             val account = accountDao.getAccountById(id)
             if (account != null) {
-                Result.Success(account)
+                Result.Success(account.toDomain())
             } else {
                 Result.Error(Exception("Account not found"), "Account with id $id not found")
             }

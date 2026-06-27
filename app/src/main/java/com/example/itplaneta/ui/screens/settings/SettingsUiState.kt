@@ -1,7 +1,7 @@
 package com.example.itplaneta.ui.screens.settings
 
-import com.example.itplaneta.data.backup.BackupMessage
 import com.example.itplaneta.core.biometric.BiometricAvailability
+import com.example.itplaneta.domain.model.BackupMessage
 import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.ui.base.UiState
 

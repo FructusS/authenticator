@@ -39,7 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.itplaneta.R
 import com.example.itplaneta.core.otp.models.OtpType
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 
 @Composable
 fun AccountRow(
