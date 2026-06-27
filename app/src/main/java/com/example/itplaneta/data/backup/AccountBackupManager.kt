@@ -2,7 +2,6 @@ package com.example.itplaneta.data.backup
 
 import android.content.Context
 import android.net.Uri
-import androidx.annotation.StringRes
 import com.example.itplaneta.R
 import com.example.itplaneta.domain.IAccountBackupManager
 import com.example.itplaneta.domain.IAccountRepository
@@ -17,16 +16,12 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.example.itplaneta.core.utils.Result
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
+import com.example.itplaneta.domain.model.BackupMessage
+import com.example.itplaneta.domain.model.BackupResult
 import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.InputStreamReader
-
-data class BackupMessage(
-    @param:StringRes val resId: Int, val arg: Int? = null
-)
-
-typealias BackupResult<T> = Result<T, BackupMessage>
 
 @Singleton
 class AccountBackupManager @Inject constructor(

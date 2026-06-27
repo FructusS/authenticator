@@ -5,9 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
 import com.example.itplaneta.core.utils.Result
-import com.example.itplaneta.data.repository.AccountRepository
-import com.example.itplaneta.data.sources.Account
 import com.example.itplaneta.domain.AccountInputDto
+import com.example.itplaneta.domain.IAccountRepository
 import com.example.itplaneta.domain.toAccount
 import com.example.itplaneta.domain.toAccountInputDto
 import com.example.itplaneta.domain.validation.AccountValidator
@@ -23,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val accountRepository: AccountRepository,
+    private val accountRepository: IAccountRepository,
     private val accountValidator: AccountValidator,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<AccountUiState, AccountUiEvent>() {

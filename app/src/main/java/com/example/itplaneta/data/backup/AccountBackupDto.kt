@@ -2,7 +2,7 @@ package com.example.itplaneta.data.backup
 
 import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 import kotlinx.serialization.Serializable
 
 @Serializable

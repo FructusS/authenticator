@@ -2,7 +2,7 @@ package com.example.itplaneta.domain
 
 import com.example.itplaneta.core.otp.models.OtpAlgorithm
 import com.example.itplaneta.core.otp.models.OtpType
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 
 data class AccountInputDto(
     val id: Int = 0,

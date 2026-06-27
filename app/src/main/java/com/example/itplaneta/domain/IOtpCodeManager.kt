@@ -1,6 +1,6 @@
 package com.example.itplaneta.domain
 
-import com.example.itplaneta.data.sources.Account
+import com.example.itplaneta.domain.model.Account
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow

@@ -1,7 +1,7 @@
 package com.example.itplaneta.data.backup
 
-import com.example.itplaneta.data.sources.Account
 import com.example.itplaneta.domain.IBackupRepository
+import com.example.itplaneta.domain.model.Account
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.subtle.Base64
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -11,7 +11,6 @@ import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.text.map
 
 @Singleton
 class BackupRepository @Inject constructor(
