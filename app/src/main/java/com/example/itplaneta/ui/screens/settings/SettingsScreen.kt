@@ -3,9 +3,7 @@ package com.example.itplaneta.ui.screens.settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,7 +36,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.itplaneta.R
 import com.example.itplaneta.ui.components.AppTopBar
 import com.example.itplaneta.ui.components.topBarConfig
-import com.example.itplaneta.ui.navigation.SettingsDestination
 import com.example.itplaneta.ui.screens.settings.component.ThemeOptions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -165,29 +162,27 @@ fun SettingsScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column() {
-                    Text(text = "123")
-                    Text(text = "654")
-
-                }
-                Switch(
-                    checked = uiState.isPinEnabled, onCheckedChange = {
-                    viewModel.onPinCheckedChange(it)
-                }, thumbContent = if (uiState.isPinEnabled) {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                        )
+            ListItem(
+                headlineContent = { Text(stringResource(id = R.string.pin_lock_title)) },
+                supportingContent = { Text(stringResource(id = R.string.pin_lock_desc)) },
+                trailingContent = {
+                    Switch(
+                        checked = uiState.isPinEnabled,
+                        onCheckedChange = { viewModel.onPinCheckedChange(it) },
+                        thumbContent = if (uiState.isPinEnabled) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        }
+                    )
                     }
-                } else {
-                    null
-                })
-            }
+            )
         }
     }
 }

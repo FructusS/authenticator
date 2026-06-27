@@ -2,8 +2,10 @@ package com.example.itplaneta.ui.screens.pin
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.example.itplaneta.R
+import com.example.itplaneta.domain.IPinRepository
+import com.example.itplaneta.domain.validation.PinValidator
 import com.example.itplaneta.ui.base.BaseViewModel
-import com.example.itplaneta.data.SettingsManager
 import com.example.itplaneta.ui.navigation.PinDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -14,84 +16,99 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PinViewModel @Inject constructor(
-    private val settingsManager: SettingsManager, savedStateHandle: SavedStateHandle
+    private val pinRepository: IPinRepository,
+    savedStateHandle: SavedStateHandle
 ) : BaseViewModel<PinUiState, PinUiEvent>() {
-
-    private val startMode: PinScenario = PinScenario.fromName(savedStateHandle.get<String>(PinDestination.modeArg))
+    private val startMode: PinScenario =
+        PinScenario.fromName(savedStateHandle.get<String>(PinDestination.modeArg))
 
     override val _uiState = MutableStateFlow(PinUiState(startMode))
 
     init {
         viewModelScope.launch {
-            // флаг "биометрия включена пользователем" из DataStore
-            settingsManager.isBiometricEnabledFlow.collect { enabled ->
+            pinRepository.isBiometricEnabledFlow.collect { enabled ->
                 updateState { it.copy(isBiometricEnabled = enabled) }
             }
         }
 
         if (startMode == PinScenario.UNLOCK) {
             viewModelScope.launch {
-                val enabled = settingsManager.isPinEnabledFlow.first()
+                val enabled = pinRepository.isPinEnabledFlow.first()
                 updateState { it.copy(isPinEnabled = enabled) }
-                if (uiState.value.isPinEnabled) {
-                    emitEvent(PinUiEvent.OpenApp)
+                if (!enabled) {
+                    openApp()
                 }
             }
         }
     }
 
-    // вызываться из Composable после проверки BiometricManager
     fun onBiometricAvailability(canUse: Boolean) {
         updateState { it.copy(canUseBiometric = canUse) }
     }
 
-    // кнопка/автостарт биометрии
     fun onBiometricRequested() {
-        val s = uiState.value
-        if (s.canUseBiometric && s.isBiometricEnabled && s.scenario == PinScenario.UNLOCK) {
+        val state = uiState.value
+        if (state.canUseBiometric &&
+            state.isBiometricEnabled &&
+            state.scenario == PinScenario.UNLOCK &&
+            state.isPinEnabled
+        ) {
             postEvent(PinUiEvent.LaunchBiometric)
         }
     }
 
     fun onBiometricSuccess() {
-        // биометрия прошла — считается как успешный PIN UNLOCK
-        when (uiState.value.scenario) {
-            PinScenario.UNLOCK -> postEvent(PinUiEvent.OpenApp)
-            // при желании можно использовать и для ENABLE/DISABLE как доп. проверку
-            else -> { /* no-op */ }
+        if (uiState.value.scenario == PinScenario.UNLOCK) {
+            openApp()
         }
     }
 
-    fun onBiometricError() {
-        // ничего не делаем, остаётся PIN какfallback
-        // можно добавить короткий blinkError() если хочешь подсветку
-    }
+    fun onBiometricError() = Unit
 
     fun onDigitClick(digit: Char) {
+        var shouldSubmit = false
         updateState { state ->
-            if (state.value.length >= 6) state
-            else state.copy(value = state.value + digit)
+            if (state.isInputLocked ||
+                state.screenState == PinCodeScreenState.Success ||
+                state.value.length >= PinValidator.PIN_LENGTH ||
+                !digit.isDigit()
+            ) {
+                state
+            } else {
+                val nextValue = state.value + digit
+                shouldSubmit = nextValue.length == PinValidator.PIN_LENGTH
+                state.copy(value = nextValue)
+            }
+        }
+        if (shouldSubmit) {
+            onSubmit()
         }
     }
 
     fun onBackspaceLongClick() {
         updateState { state ->
-            if (state.value.isEmpty()) state
-            else state.copy(value = "")
+            if (state.value.isEmpty() || state.isInputLocked) state else state.copy(value = "")
         }
     }
 
     fun onBackspaceClick() {
         updateState { state ->
-            if (state.value.isEmpty()) state
-            else state.copy(value = state.value.dropLast(1))
+            if (state.value.isEmpty() || state.isInputLocked) {
+                state
+            } else {
+                state.copy(value = state.value.dropLast(1))
+            }
         }
     }
 
     fun onSubmit() {
         val state = uiState.value
-        if (state.value.isEmpty()) {
-            showPinErrorAndClear()
+        if (state.isInputLocked || state.screenState == PinCodeScreenState.Success) {
+            return
+        }
+
+        if (!PinValidator.isValid(state.value)) {
+            showPinErrorAndClear(R.string.pin_error_length)
             return
         }
 
@@ -101,38 +118,43 @@ class PinViewModel @Inject constructor(
             PinScenario.ENABLE -> handleEnable()
         }
     }
-    // --- UNLOCK при старте ---
 
     private fun handleUnlock() {
         val pin = uiState.value.value
         viewModelScope.launch {
-            val valid = settingsManager.isPinValid(pin)
+            updateState { it.copy(isInputLocked = true) }
+            val valid = pinRepository.isPinValid(pin)
             if (valid) {
-                updateState { it.copy(value = "", isError = false) }
-                emitEvent(PinUiEvent.OpenApp)
+                openApp()
             } else {
-                showPinErrorAndClear()
+                showPinErrorAndClear(R.string.pin_error_invalid)
             }
         }
     }
-
-    // --- DISABLE в настройках ---
 
     private fun handleDisable() {
         val pin = uiState.value.value
         viewModelScope.launch {
-            val valid = settingsManager.isPinValid(pin)
+            updateState { it.copy(isInputLocked = true) }
+            val valid = pinRepository.isPinValid(pin)
             if (valid) {
-                settingsManager.setPinEnabled(false)
-                updateState { it.copy(value = "", isError = false) }
+                pinRepository.setPinEnabled(false)
+                updateState {
+                    it.copy(
+                        value = "",
+                        isError = false,
+                        isInputLocked = true,
+                        isPinEnabled = false,
+                        screenState = PinCodeScreenState.Success
+                    )
+                }
+                delay(PinAnimationConstants.SUCCESS_DELAY_MS)
                 emitEvent(PinUiEvent.NavigateBackToSettings)
             } else {
-                showPinErrorAndClear()
+                showPinErrorAndClear(R.string.pin_error_invalid)
             }
         }
     }
-
-    // --- ENABLE: ввод + подтверждение ---
 
     private fun handleEnable() {
         when (uiState.value.stage) {
@@ -141,65 +163,86 @@ class PinViewModel @Inject constructor(
         }
     }
 
-    // шаг 1: ввод нового PIN
     private fun saveFirstPin() {
         val pin = uiState.value.value
-        updateState {
-            it.copy(
-                firstValue = pin, value = "", stage = PinStage.CONFIRM, isError = false
-            )
+        viewModelScope.launch {
+            updateState {
+                it.copy(
+                    isError = false,
+                    isInputLocked = true,
+                    screenState = PinCodeScreenState.Success
+                )
+            }
+            delay(PinAnimationConstants.SUCCESS_DELAY_MS)
+            updateState {
+                it.copy(
+                    firstValue = pin,
+                    value = "",
+                    stage = PinStage.CONFIRM,
+                    isError = false,
+                    isInputLocked = false,
+                    screenState = PinCodeScreenState.Idle
+                )
+            }
         }
     }
 
-    // шаг 2: подтверждение PIN
     private fun confirmNewPin() {
         val state = uiState.value
         val first = state.firstValue
         val confirm = state.value
 
         if (first == null) {
-            // что-то пошло не так — откат в начало сценария ENABLE
             updateState {
-                it.copy(
-                    stage = PinStage.INPUT, value = "", firstValue = null, isError = false
-                )
+                it.copy(stage = PinStage.INPUT, value = "", firstValue = null, isError = false)
             }
             return
         }
 
         if (confirm != first) {
-            // не совпало — ошибка и возврат к первому шагу
             updateState {
-                it.copy(
-                    stage = PinStage.INPUT, value = "", firstValue = null
-                )
+                it.copy(value = "")
             }
-            showPinErrorAndClear()
+            showPinErrorAndClear(R.string.pin_error_mismatch)
             return
         }
 
-        // всё ок — сохраняем PIN и включаем
         viewModelScope.launch {
-            settingsManager.savePin(confirm)
-            settingsManager.setPinEnabled(true)
+            updateState { it.copy(isInputLocked = true) }
+            pinRepository.savePin(confirm)
+            pinRepository.setPinEnabled(true)
             updateState {
                 it.copy(
                     value = "",
                     firstValue = null,
-                    stage = PinStage.INPUT,
-                    isError = false
+                    isError = false,
+                    isInputLocked = true,
+                    isPinEnabled = true,
+                    screenState = PinCodeScreenState.Success
                 )
             }
+            delay(PinAnimationConstants.SUCCESS_DELAY_MS)
             emitEvent(PinUiEvent.NavigateBackToSettings)
         }
     }
 
-
-    private fun showPinErrorAndClear() {
+    private fun showPinErrorAndClear(messageRes: Int) {
         viewModelScope.launch {
-            updateState { it.copy(isError = true, value = "") }
-            delay(500) // 0.5 сек подсветки
-            updateState { it.copy(isError = false) }
+            updateState { it.copy(isError = true, value = "", isInputLocked = true) }
+            emitEvent(PinUiEvent.ShowMessage(messageRes))
+            delay(PinAnimationConstants.ERROR_FEEDBACK_DELAY_MS)
+            updateState { it.copy(isError = false, isInputLocked = false) }
+        }
+    }
+
+    private fun openApp() {
+        updateState {
+            it.copy(
+                value = "",
+                isError = false,
+                isInputLocked = true,
+                screenState = PinCodeScreenState.Success
+            )
         }
     }
 }

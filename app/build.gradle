@@ -226,6 +226,7 @@ dependencies {
     // TESTING
     // ============================================================================
     testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2"
     androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.androidx_test_ext_version}"
     androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.espresso_version}"
     androidTestImplementation(platform("androidx.compose:compose-bom:${rootProject.ext.compose_bom_version}"))
