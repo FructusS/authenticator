@@ -7,6 +7,7 @@ import com.example.itplaneta.core.utils.Result
 import com.example.itplaneta.ui.theme.AppTheme
 import com.example.itplaneta.domain.IAccountBackupManager
 import com.example.itplaneta.data.SettingsManager
+import com.example.itplaneta.domain.IPinRepository
 import com.example.itplaneta.ui.base.BaseViewModel
 import com.example.itplaneta.ui.screens.pin.PinScenario
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsManager: SettingsManager, private val backupManager: IAccountBackupManager
+    private val settingsManager: SettingsManager,
+    private val backupManager: IAccountBackupManager,
+    private val pinRepository: IPinRepository
 ) : BaseViewModel<SettingsUiState, SettingsUiEvent>() {
 
 
@@ -31,7 +34,7 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            settingsManager.isPinEnabledFlow.collect { enabled ->
+            pinRepository.isPinEnabledFlow.collect { enabled ->
                 updateState { it.copy(isPinEnabled = enabled) }
             }
         }

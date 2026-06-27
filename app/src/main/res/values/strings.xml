@@ -95,8 +95,17 @@
     <string name="qr_hint_subtitle">Place the code inside the frame, scanning will start automatically</string>
     <string name="pin_enter">Enter a PIN</string>
     <string name="security">Security</string>
-    <string name="pin_setup">Установите ПИН</string>
-    <string name="pin_confirm">Подтвердите PIN</string>
+    <string name="pin_setup">Create a PIN</string>
+    <string name="pin_confirm">Confirm PIN</string>
+    <string name="pin_lock_title">PIN lock</string>
+    <string name="pin_lock_desc">Require a PIN when opening the app.</string>
+    <string name="pin_error_length">Enter a 6-digit PIN.</string>
+    <string name="pin_error_invalid">Incorrect PIN. Try again.</string>
+    <string name="pin_error_mismatch">PIN codes do not match. Try again.</string>
+    <string name="pin_enabled">PIN lock enabled.</string>
+    <string name="pin_disabled">PIN lock disabled.</string>
+    <string name="biometric_prompt_title" />
+    <string name="biometric_prompt_subtitle" />
 
     <string-array name="theme_app">
         <item>Dark mode</item>

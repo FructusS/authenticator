@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +35,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -42,6 +46,7 @@ import com.example.itplaneta.R
 import com.example.itplaneta.ui.components.AppTopBar
 import com.example.itplaneta.ui.components.topBarConfig
 import com.example.itplaneta.ui.screens.pin.component.NumericKeyboard
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -65,6 +70,13 @@ fun PinScreen(
     }
 
     // 1) проверка, есть ли биометрия на устройстве и пользователь её настроил
+    LaunchedEffect(state.screenState) {
+        if (state.screenState == PinCodeScreenState.Success && state.scenario == PinScenario.UNLOCK) {
+            delay(PinAnimationConstants.SUCCESS_DELAY_MS)
+            onNavigateToMain()
+        }
+    }
+
     LaunchedEffect(Unit) {
         val manager = BiometricManager.from(context)
         val canAuth = manager.canAuthenticate(BIOMETRIC_STRONG)
@@ -99,15 +111,36 @@ fun PinScreen(
     }
 
     val offsetX by animateFloatAsState(
-        targetValue = if (state.isError) 16f else 0f, animationSpec = keyframes {
-            durationMillis = 300
+        targetValue = if (state.isError) PinAnimationConstants.ERROR_SHAKE_FULL_OFFSET else 0f,
+        animationSpec = keyframes {
+            durationMillis = PinAnimationConstants.ERROR_SHAKE_DURATION_MS
             0f at 0
-            16f at 50
-            16f at 100
-            8f at 150
-            8f at 200
-            0f at 300
+            PinAnimationConstants.ERROR_SHAKE_FULL_OFFSET at
+                PinAnimationConstants.ERROR_SHAKE_FIRST_FULL_MS
+            PinAnimationConstants.ERROR_SHAKE_FULL_OFFSET at
+                PinAnimationConstants.ERROR_SHAKE_SECOND_FULL_MS
+            PinAnimationConstants.ERROR_SHAKE_HALF_OFFSET at
+                PinAnimationConstants.ERROR_SHAKE_FIRST_HALF_MS
+            PinAnimationConstants.ERROR_SHAKE_HALF_OFFSET at
+                PinAnimationConstants.ERROR_SHAKE_SECOND_HALF_MS
+            0f at PinAnimationConstants.ERROR_SHAKE_DURATION_MS
         }, label = ""
+    )
+
+    val dotsScale by animateFloatAsState(
+        targetValue = if (state.screenState == PinCodeScreenState.Success) {
+            PinAnimationConstants.SUCCESS_SCALE_PEAK
+        } else {
+            PinAnimationConstants.SUCCESS_SCALE_START
+        },
+        animationSpec = keyframes {
+            durationMillis = PinAnimationConstants.SUCCESS_PULSE_DURATION_MS
+            PinAnimationConstants.SUCCESS_SCALE_START at 0
+            PinAnimationConstants.SUCCESS_SCALE_PEAK at PinAnimationConstants.SUCCESS_PULSE_PEAK_MS
+            PinAnimationConstants.SUCCESS_SCALE_END at
+                PinAnimationConstants.SUCCESS_PULSE_DURATION_MS
+        },
+        label = ""
     )
 
     Scaffold(
@@ -131,14 +164,29 @@ fun PinScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.offset { IntOffset(offsetX.roundToInt(), 0) }) {
+                    modifier = Modifier
+                        .offset { IntOffset(offsetX.roundToInt(), 0) }
+                        .graphicsLayer {
+                            scaleX = dotsScale
+                            scaleY = dotsScale
+                        }) {
                     repeat(6) { index ->
                         val filled = index < state.value.length
                         val baseColor = if (filled) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.surfaceVariant
 
-                        val color = if (state.isError) MaterialTheme.colorScheme.error
-                        else baseColor
+                        val targetColor = when {
+                            state.screenState == PinCodeScreenState.Success -> Color(0xFF2E7D32)
+                            state.isError -> MaterialTheme.colorScheme.error
+                            else -> baseColor
+                        }
+                        val color by animateColorAsState(
+                            targetValue = targetColor,
+                            animationSpec = tween(
+                                durationMillis = PinAnimationConstants.COLOR_TRANSITION_MS
+                            ),
+                            label = ""
+                        )
 
                         Box(
                             modifier = Modifier

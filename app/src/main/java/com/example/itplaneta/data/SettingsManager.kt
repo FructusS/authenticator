@@ -54,6 +54,11 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
     suspend fun setPinEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[PIN_ENABLED_KEY] = enabled
+            if (!enabled) {
+                prefs.remove(PIN_HASH_KEY)
+                prefs.remove(PIN_SALT_KEY)
+                prefs[BIOMETRIC_ENABLED_KEY] = false
+            }
         }
     }
 

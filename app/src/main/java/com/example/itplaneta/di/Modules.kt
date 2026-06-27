@@ -4,12 +4,14 @@ import android.content.Context
 import com.example.itplaneta.data.QrCodeAnalyzerFactoryImpl
 import com.example.itplaneta.data.backup.AccountBackupManager
 import com.example.itplaneta.data.repository.AccountRepository
+import com.example.itplaneta.data.repository.PinRepository
 import com.example.itplaneta.data.backup.BackupRepository
 import com.example.itplaneta.data.sources.database.AccountDao
 import com.example.itplaneta.data.sources.database.AccountDatabase
 import com.example.itplaneta.domain.IAccountBackupManager
 import com.example.itplaneta.domain.IAccountRepository
 import com.example.itplaneta.domain.IBackupRepository
+import com.example.itplaneta.domain.IPinRepository
 import com.example.itplaneta.domain.QrCodeAnalyzerFactory
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.aead.AeadKeyTemplates
@@ -59,6 +61,12 @@ interface RepositoryModule {
     fun provideBackupAccountManager(
         impl: AccountBackupManager
     ): IAccountBackupManager
+
+    @Binds
+    @Singleton
+    fun providePinRepository(
+        impl: PinRepository
+    ): IPinRepository
 }
 
 @Module
