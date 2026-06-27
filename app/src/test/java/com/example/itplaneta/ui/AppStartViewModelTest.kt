@@ -40,10 +40,8 @@ class AppStartViewModelTest {
         enabled: Boolean
     ) : IPinRepository {
         override val isPinEnabledFlow: Flow<Boolean> = MutableStateFlow(enabled)
-        override val isBiometricEnabledFlow: Flow<Boolean> = MutableStateFlow(false)
 
         override suspend fun setPinEnabled(enabled: Boolean) = Unit
-        override suspend fun setBiometricEnabled(enabled: Boolean) = Unit
         override suspend fun savePin(pin: String) = Unit
         override suspend fun isPinValid(input: String): Boolean = false
     }

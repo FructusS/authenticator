@@ -6,6 +6,7 @@ import com.example.itplaneta.R
 import com.example.itplaneta.core.biometric.BiometricAvailability
 import com.example.itplaneta.core.biometric.BiometricResult
 import com.example.itplaneta.domain.IBiometricRepository
+import com.example.itplaneta.domain.IBiometricSettingsRepository
 import com.example.itplaneta.domain.IPinRepository
 import com.example.itplaneta.ui.navigation.PinDestination
 import androidx.fragment.app.FragmentActivity
@@ -124,10 +125,14 @@ class PinViewModelTest {
     fun disablingPinRequiresCurrentPinAndDisablesLock() = runTest(mainDispatcherRule.dispatcher) {
         val repository = FakePinRepository(
             enabled = true,
-            savedPin = "123456",
-            biometricEnabled = true
+            savedPin = "123456"
         )
-        val viewModel = createViewModel(repository, PinScenario.DISABLE)
+        val biometricSettingsRepository = FakeBiometricSettingsRepository(enabled = true)
+        val viewModel = createViewModel(
+            repository,
+            PinScenario.DISABLE,
+            biometricSettingsRepository = biometricSettingsRepository
+        )
         val events = collectEvents(viewModel)
         runCurrent()
 
@@ -135,7 +140,6 @@ class PinViewModelTest {
         advanceUntilIdle()
 
         assertFalse(repository.enabled.value)
-        assertFalse(repository.biometricEnabled.value)
         assertEquals(PinCodeScreenState.Success, viewModel.uiState.value.screenState)
         assertTrue(events.contains(PinUiEvent.NavigateBackToSettings))
     }
@@ -158,11 +162,11 @@ class PinViewModelTest {
         val viewModel = createViewModel(
             FakePinRepository(
                 enabled = true,
-                savedPin = "123456",
-                biometricEnabled = true
+                savedPin = "123456"
             ),
             PinScenario.UNLOCK,
-            FakeBiometricRepository(BiometricAvailability.Available)
+            FakeBiometricRepository(BiometricAvailability.Available),
+            FakeBiometricSettingsRepository(enabled = true)
         )
         val events = collectEvents(viewModel)
         runCurrent()
@@ -181,11 +185,11 @@ class PinViewModelTest {
         val viewModel = createViewModel(
             FakePinRepository(
                 enabled = true,
-                savedPin = "123456",
-                biometricEnabled = true
+                savedPin = "123456"
             ),
             PinScenario.UNLOCK,
-            FakeBiometricRepository(BiometricAvailability.NoHardware)
+            FakeBiometricRepository(BiometricAvailability.NoHardware),
+            FakeBiometricSettingsRepository(enabled = true)
         )
         val events = collectEvents(viewModel)
         runCurrent()
@@ -197,12 +201,18 @@ class PinViewModelTest {
     private fun createViewModel(
         repository: FakePinRepository,
         scenario: PinScenario,
-        biometricRepository: IBiometricRepository = FakeBiometricRepository()
+        biometricRepository: IBiometricRepository = FakeBiometricRepository(),
+        biometricSettingsRepository: IBiometricSettingsRepository = FakeBiometricSettingsRepository()
     ): PinViewModel {
         val savedStateHandle = SavedStateHandle(
             mapOf(PinDestination.modeArg to scenario.name)
         )
-        return PinViewModel(repository, biometricRepository, savedStateHandle)
+        return PinViewModel(
+            repository,
+            biometricSettingsRepository,
+            biometricRepository,
+            savedStateHandle
+        )
     }
 
     private fun enterPin(viewModel: PinViewModel, pin: String) {
@@ -221,25 +231,15 @@ class PinViewModelTest {
 
     private class FakePinRepository(
         enabled: Boolean = false,
-        savedPin: String? = null,
-        biometricEnabled: Boolean = false
+        savedPin: String? = null
     ) : IPinRepository {
         val enabled = MutableStateFlow(enabled)
-        val biometricEnabled = MutableStateFlow(biometricEnabled)
         var savedPin: String? = savedPin
 
         override val isPinEnabledFlow: Flow<Boolean> = this.enabled
-        override val isBiometricEnabledFlow: Flow<Boolean> = this.biometricEnabled
 
         override suspend fun setPinEnabled(enabled: Boolean) {
             this.enabled.value = enabled
-            if (!enabled) {
-                biometricEnabled.value = false
-            }
-        }
-
-        override suspend fun setBiometricEnabled(enabled: Boolean) {
-            biometricEnabled.value = enabled
         }
 
         override suspend fun savePin(pin: String) {
@@ -248,6 +248,18 @@ class PinViewModelTest {
 
         override suspend fun isPinValid(input: String): Boolean {
             return savedPin == input
+        }
+    }
+
+    private class FakeBiometricSettingsRepository(
+        enabled: Boolean = false
+    ) : IBiometricSettingsRepository {
+        val enabled = MutableStateFlow(enabled)
+
+        override val isBiometricEnabledFlow: Flow<Boolean> = this.enabled
+
+        override suspend fun setBiometricEnabled(enabled: Boolean) {
+            this.enabled.value = enabled
         }
     }
 

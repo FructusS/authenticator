@@ -1,18 +1,24 @@
 package com.example.itplaneta.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.example.itplaneta.core.biometric.BiometricRepository
 import com.example.itplaneta.data.QrCodeAnalyzerFactoryImpl
+import com.example.itplaneta.data.settingsDataStore
 import com.example.itplaneta.data.backup.AccountBackupManager
 import com.example.itplaneta.data.repository.AccountRepository
-import com.example.itplaneta.data.repository.PinRepository
+import com.example.itplaneta.data.repository.AppSettingsRepository
 import com.example.itplaneta.data.backup.BackupRepository
+import com.example.itplaneta.data.repository.SecurityRepository
 import com.example.itplaneta.data.sources.database.AccountDao
 import com.example.itplaneta.data.sources.database.AccountDatabase
 import com.example.itplaneta.domain.IAccountBackupManager
 import com.example.itplaneta.domain.IAccountRepository
+import com.example.itplaneta.domain.IAppSettingsRepository
 import com.example.itplaneta.domain.IBackupRepository
 import com.example.itplaneta.domain.IBiometricRepository
+import com.example.itplaneta.domain.IBiometricSettingsRepository
 import com.example.itplaneta.domain.IPinRepository
 import com.example.itplaneta.domain.QrCodeAnalyzerFactory
 import com.google.crypto.tink.Aead
@@ -30,6 +36,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+    @Singleton
+    @Provides
+    fun provideSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.settingsDataStore
+    }
+
     @Singleton
     @Provides
     fun provideDatabase(@ApplicationContext context: Context): AccountDatabase {
@@ -66,9 +78,21 @@ interface RepositoryModule {
 
     @Binds
     @Singleton
+    fun provideAppSettingsRepository(
+        impl: AppSettingsRepository
+    ): IAppSettingsRepository
+
+    @Binds
+    @Singleton
     fun providePinRepository(
-        impl: PinRepository
+        impl: SecurityRepository
     ): IPinRepository
+
+    @Binds
+    @Singleton
+    fun provideBiometricSettingsRepository(
+        impl: SecurityRepository
+    ): IBiometricSettingsRepository
 
     @Binds
     @Singleton
