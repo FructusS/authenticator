@@ -6,8 +6,8 @@ plugins {
     id 'com.google.dagger.hilt.android'
     id 'androidx.room'
     id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
-apply plugin: "org.jetbrains.kotlin.plugin.compose"
 
 android {
     namespace 'com.example.itplaneta'
@@ -85,13 +85,6 @@ android {
     }
 
     // ============================================================================
-    // COMPOSE OPTIONS
-    // ============================================================================
-    composeOptions {
-        kotlinCompilerExtensionVersion rootProject.ext.kotlin_compiler_ext_version
-    }
-
-    // ============================================================================
     // PACKAGING OPTIONS
     // ============================================================================
     packagingOptions {
@@ -153,20 +146,20 @@ dependencies {
     // ============================================================================
     // COMPOSE
     // ============================================================================
+    implementation(platform("androidx.compose:compose-bom:${rootProject.ext.compose_bom_version}"))
     implementation "androidx.activity:activity-compose:${rootProject.ext.activity_compose_version}"
-    implementation "androidx.compose.ui:ui:${rootProject.ext.compose_ui_version}"
-    implementation "androidx.compose.ui:ui-tooling-preview:${rootProject.ext.compose_ui_version}"
-    implementation "androidx.compose.foundation:foundation:${rootProject.ext.compose_ui_version}"
-    implementation "androidx.compose.runtime:runtime-livedata:${rootProject.ext.livedata_version}"
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.foundation:foundation"
+    implementation "androidx.compose.runtime:runtime-livedata"
 
     // ============================================================================
     // MATERIAL 3
     // ============================================================================
-    implementation "androidx.compose.material3:material3:${rootProject.ext.material3_version}"
-    implementation(platform("androidx.compose:compose-bom:2025.11.01"))
-    implementation("androidx.compose.material:material-icons-core:${rootProject.ext.material3_version}")
-    implementation("androidx.compose.material:material-icons-extended:${rootProject.ext.material3_version}")
-    implementation "androidx.compose.material3:material3-window-size-class:${rootProject.ext.material3_version}"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.compose.material:material-icons-core"
+    implementation "androidx.compose.material:material-icons-extended"
+    implementation "androidx.compose.material3:material3-window-size-class"
 
     // ============================================================================
     // NAVIGATION
@@ -180,8 +173,6 @@ dependencies {
     // ============================================================================
     implementation "androidx.room:room-runtime:${rootProject.ext.room_version}"
     implementation "androidx.room:room-ktx:${rootProject.ext.room_version}"
-    implementation 'androidx.compose.ui:ui:1.9.5'
-    implementation 'androidx.compose.material3:material3:1.4.0'
     //noinspection KaptUsageInsteadOfKsp
     kapt "androidx.room:room-compiler:${rootProject.ext.room_version}"
 
@@ -225,10 +216,10 @@ dependencies {
     // ============================================================================
     // SECURITY
     // ============================================================================
-    implementation "androidx.security:security-crypto:1.1.0"
-    implementation "androidx.security:security-crypto-ktx:1.1.0"
-    implementation "androidx.security:security-app-authenticator:1.0.0"
-    implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
+    implementation "androidx.security:security-crypto:${rootProject.ext.security_crypto_version}"
+    implementation "androidx.security:security-crypto-ktx:${rootProject.ext.security_crypto_version}"
+    implementation "androidx.security:security-app-authenticator:${rootProject.ext.security_app_auth_version}"
+    implementation "androidx.biometric:biometric-ktx:${rootProject.ext.biometric_ktx_version}"
     implementation "com.google.crypto.tink:tink-android:1.10.0"
 
     // ============================================================================
@@ -237,7 +228,8 @@ dependencies {
     testImplementation "junit:junit:${rootProject.ext.junit_version}"
     androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.androidx_test_ext_version}"
     androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.espresso_version}"
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:${rootProject.ext.compose_ui_version}"
-    debugImplementation "androidx.compose.ui:ui-tooling:${rootProject.ext.compose_ui_version}"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:${rootProject.ext.compose_ui_test_version}"
+    androidTestImplementation(platform("androidx.compose:compose-bom:${rootProject.ext.compose_bom_version}"))
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4"
+    debugImplementation "androidx.compose.ui:ui-tooling"
+    debugImplementation "androidx.compose.ui:ui-test-manifest"
 }
